@@ -1,1 +1,8 @@
-!code/.gitignore
+code/build
+code/gradle
+code/.gradle
+code/gradlew.bat
+code/gradlew
+code/**/.*
+**/*.swp
+**/*~
