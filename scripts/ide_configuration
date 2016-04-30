@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [[ $# -ne 2 ]]; then
+  >&2 echo "$0 (--store|--restore) ide_name"
+  exit 1
+fi
+
+cd "$(dirname "$0")"
+
+code_location="../code"
+
+option="$1"
+ide="$2"
+
+ides_folder="../ides"
+case "$ide" in
+  eclipse)
+    ide_files=(
+    ".cproject" ".project" ".settings"
+    )
+    ide_folder="${ides_folder}/eclipse"
+    ;;
+  idea)
+    ide_files=(
+    ".idea"
+    )
+    ide_folder="${ides_folder}/idea"
+    ;;
+  *)
+    >&2 echo "$1 ide was not implemented in this script."
+    exit 1
+esac
+
+case "$option" in
+  --store)
+    rm -rf "$ide_folder"
+    mkdir -p "$ide_folder"
+    for file in "${ide_files[@]}"; do
+      cp -a "${code_location}/${file}" "$ide_folder/"
+    done
+    ;;
+  --restore)
+    for file in "${ide_files[@]}"; do
+      if [[ -f "$file" || -d "$file" ]]; then
+        mv -f "${code_location}/${file}" "${code_location}/${file}.old"
+      fi
+      cp -a "${ide_folder}/${file}" "${code_location}/"
+    done
+    chown -R "$(id -un):$(id -gn)" "$code_location"
+    ;;
+  *)
+    >&2 echo "$1 invalid option"
+    exit 1
+esac
