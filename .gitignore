@@ -1,8 +1,9 @@
-code/build
-code/gradle
-code/.gradle
-code/gradlew.bat
-code/gradlew
+build
+gradle
+.gradle
+gradlew.bat
+gradlew
 code/**/.*
-**/*.swp
-**/*~
+*.swp
+*~
+*.iml
