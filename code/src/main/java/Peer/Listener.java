@@ -4,17 +4,17 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Listener implements Runnable {
 
     private int port;
     private ServerSocketChannel serverSocket;
-    private ArrayBlockingQueue<Connection> connectionsQueue;
+    private LinkedBlockingQueue<Connection> queuedConnections;
 
-    public Listener(int port, ArrayBlockingQueue<Connection> ConnectionsQueue) {
+    public Listener(int port, LinkedBlockingQueue<Connection> queuedConnections) {
         this.port = port;
-        this.connectionsQueue = ConnectionsQueue;
+        this.queuedConnections = queuedConnections;
     }
 
     public void run() {
@@ -28,7 +28,7 @@ final public class Listener implements Runnable {
         try {
             while (true) {
                 SocketChannel socketChannel = this.serverSocket.accept();
-                this.connectionsQueue.put(new Connection(socketChannel));
+                this.queuedConnections.put(new Connection(socketChannel));
             }
         } catch (Exception e) {
             e.printStackTrace();

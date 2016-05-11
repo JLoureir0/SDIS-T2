@@ -1,25 +1,27 @@
 package Peer;
 
 import java.io.IOException;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Server {
     private final int port;
-    private final ArrayBlockingQueue<Connection> connectionsQueue;
+
+    private final LinkedBlockingQueue<Connection> queuedConnections;
 
     private Listener listener = null;
+
     private ConnectionsHandler connectionsHandler = null;
 
-    public Server(int port, int connectionsQueueSize) {
+    public Server(int port, int queuedConnectionsSize) {
         this.port = port;
-        this.connectionsQueue = new ArrayBlockingQueue<>(connectionsQueueSize);
+        this.queuedConnections = new LinkedBlockingQueue<>(queuedConnectionsSize);
     }
 
     public void start() throws IOException {
 
-        this.listener = new Listener(port, connectionsQueue);
+        this.listener = new Listener(port, queuedConnections);
 
-        this.connectionsHandler = new ConnectionsHandler(connectionsQueue);
+        this.connectionsHandler = new ConnectionsHandler(queuedConnections);
 
         new Thread(this.listener).start();
         new Thread(this.connectionsHandler).start();

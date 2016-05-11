@@ -8,14 +8,12 @@ package Peer;
             SOME_TYPE_OF_MESSAGE
         }
 
-
         private TYPE type = null;
 
         public byte[] sharedArray = null;
         public int offset = 0; //offset into sharedArray where this message data starts.
         public int capacity = 0; //the size of the section in the sharedArray allocated to this message.
         public int length = 0; //the number of bytes used of the allocated section.
-        private WannabeMessage wannabeMessage = null;
 
         public Message(WannabeMessage wannabeMessage) {
             this.wannabeMessage = wannabeMessage;

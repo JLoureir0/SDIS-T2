@@ -6,102 +6,29 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 final public class ConnectionsHandler implements Runnable {
 
-    final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
     final private static int BUFFER_SIZE = 1024 * 1024;
 
-    final private ArrayBlockingQueue<Connection> connectionsQueue;
+    final private ConnectionsReader connectionsReader;
+    final private ConnectionsWriter connectionsWriter;
 
-    final private HashMap<Long, ConnectionMessages> connectionsMessages = new HashMap<>();
-    final private HashSet<ConnectionMessages> outboundConnectionMessages = new HashSet<>();
+    public ConnectionsHandler(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
 
-    final private ByteBuffer interimReadBuffer = ByteBuffer.allocate(BUFFER_SIZE);
-    final private ByteBuffer interimWriteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+        this.connectionsReader = new ConnectionsReader(queuedConnections, BUFFER_SIZE);
+        this.connectionsWriter = new ConnectionsWriter(this.connectionsReader.getActiveConnections(), BUFFER_SIZE);
 
-    final private Selector readSelector;
-    final private Selector writeSelector;
+        new Thread(this.connectionsReader).start();
+        new Thread(this.connectionsWriter).start();
 
-    private long connections_loop_counter = CONNECTIONS_COUNTER_START;
-
-    public ConnectionsHandler(ArrayBlockingQueue<Connection> connectionsQueue) throws IOException {
-        this.connectionsQueue = connectionsQueue;
-        this.readSelector = Selector.open();
-        this.writeSelector = Selector.open();
+//        this.writeSelector = Selector.open();
     }
 
     public void run() {
         while (true) {
-            try {
-                process_queued_connections();
-                check_for_inbound_messages();
-                check_for_outbound_messages();
-                Thread.sleep(100);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void process_queued_connections() throws IOException {
-
-        Connection connection = this.connectionsQueue.poll();
-
-        while (connection != null) {
-            this.create_connectionMessages(connection);
-            connection = this.connectionsQueue.poll();
-        }
-    }
-
-    private void create_connectionMessages(Connection connection) throws IOException {
-
-        do {
-            ++this.connections_loop_counter;
-        } while (this.connectionsMessages.containsKey(this.connections_loop_counter));
-
-        ConnectionMessages connectionMessages = new ConnectionMessages(this.connections_loop_counter, connection);
-        this.connectionsMessages.putIfAbsent(this.connections_loop_counter, connectionMessages);
-
-        connection.setBlocking(false);
-        SelectionKey key = connection.register(this.readSelector, SelectionKey.OP_READ);
-        key.attach(connectionMessages);
-    }
-
-    public void check_for_inbound_messages() throws IOException {
-        int readReady = this.readSelector.selectNow();
-
-        if (readReady > 0) {
-            Set<SelectionKey> selectedKeys = this.readSelector.selectedKeys();
-            Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
-
-            while (keyIterator.hasNext()) {
-                SelectionKey selectionKey = keyIterator.next();
-                process_inbound_messages(selectionKey);
-                keyIterator.remove();
-            }
-            selectedKeys.clear();
-        }
-    }
-
-    private void process_inbound_messages(SelectionKey key) throws IOException {
-        ConnectionMessages connectionMessages = (ConnectionMessages) key.attachment();
-
-        boolean connection_alive = connectionMessages.read(this.interimReadBuffer);
-
-        if (Protocol.transition(connectionMessages) > 0) {
-            this.outboundConnectionMessages.add(connectionMessages);
-        }
-
-        if (!connection_alive) {
-            this.connectionsMessages.remove(connectionMessages.getId());
-            this.outboundConnectionMessages.remove(connectionMessages.getId());
-            key.attach(null);
-            key.cancel();
-            key.channel().close();
+            LinkedBlockingQueue<Message> inboundMessages = this.connectionsReader.getInboundMessages();
         }
     }
 

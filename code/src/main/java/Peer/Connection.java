@@ -6,12 +6,14 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Comparator;
 
-final public class Connection {
+final public class Connection implements Comparator<Connection> {
 
     final private SocketChannel socketChannel;
-
+    private long id;
     private boolean alive = true;
+    private Message partialMessage;
 
     public Connection(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
@@ -57,5 +59,33 @@ final public class Connection {
 
     public SelectionKey register(Selector selector, int operation) throws ClosedChannelException {
         return this.socketChannel.register(selector, operation);
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public Message getPartialMessage() {
+        return partialMessage;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(this.id);
+    }
+
+    @Override
+    public int compare(Connection connection, Connection otherConnection) {
+        return Long.compare(connection.id, otherConnection.id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Connection otherConnection = (Connection) obj;
+        return otherConnection.id == this.id;
     }
 }
