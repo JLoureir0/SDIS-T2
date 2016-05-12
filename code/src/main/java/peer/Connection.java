@@ -1,4 +1,4 @@
-package Peer;
+package peer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,8 +11,10 @@ import java.util.Comparator;
 final public class Connection implements Comparator<Connection> {
 
     final private SocketChannel socketChannel;
+    private boolean lockedToAction = false;
     private long id;
     private boolean alive = true;
+    private Protocol.STATE state = Protocol.STATE.START;
 
     public Connection(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
@@ -68,6 +70,10 @@ final public class Connection implements Comparator<Connection> {
         return id;
     }
 
+    public Protocol.STATE getState() {
+        return state;
+    }
+
     @Override
     public int hashCode() {
         return Long.hashCode(this.id);
@@ -82,5 +88,17 @@ final public class Connection implements Comparator<Connection> {
     public boolean equals(Object obj) {
         Connection otherConnection = (Connection) obj;
         return otherConnection.id == this.id;
+    }
+
+    public boolean isLockedToAction() {
+        return this.lockedToAction;
+    }
+
+    public void setLockedToAction(boolean lockedToAction) {
+        this.lockedToAction = lockedToAction;
+    }
+
+    public void setState(Protocol.STATE state) {
+        this.state = state;
     }
 }

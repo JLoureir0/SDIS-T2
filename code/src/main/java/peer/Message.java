@@ -1,14 +1,14 @@
-package Peer;
+package peer;
 
     import java.nio.ByteBuffer;
 
-    final public class Message {
+    public class Message {
 
         public enum TYPE {
-            SOME_TYPE_OF_MESSAGE
+            FILE_TRANSFER
         }
 
-        private TYPE type = null;
+        final private TYPE type;
 
         final private long connectionId;
 
@@ -17,9 +17,16 @@ package Peer;
         public int capacity = 0; //the size of the section in the sharedArray allocated to this message.
         public int length = 0; //the number of bytes used of the allocated section.
 
+        public Message(TYPE messageType, long connectionId) {
+            this.type = messageType;
+            this.connectionId= connectionId;
+        }
+
+/*
         public Message(WannabeMessage wannabeMessage) {
             this.wannabeMessage = wannabeMessage;
         }
+*/
 
         /**
          * Writes data from the ByteBuffer into this message - meaning into the buffer backing this message.
@@ -97,5 +104,9 @@ package Peer;
 
         public TYPE getType() {
             return type;
+        }
+
+        public long getConnectionId() {
+            return connectionId;
         }
     }

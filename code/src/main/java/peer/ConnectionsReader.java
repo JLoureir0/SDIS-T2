@@ -1,4 +1,4 @@
-package Peer;
+package peer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,12 +21,12 @@ public class ConnectionsReader implements Runnable {
     final private Selector readSelector;
     final private ByteBuffer interimReadBuffer;
 
-    public ConnectionsReader(LinkedBlockingQueue<Connection> queuedConnections, int bufferSize) throws IOException {
+    public ConnectionsReader(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
         this.connectionsQueue = queuedConnections;
         this.activeConnections = new ConcurrentHashMap<>();
         this.inboundMessages = new LinkedBlockingQueue<>();
         this.readSelector = Selector.open();
-        this.interimReadBuffer = ByteBuffer.allocateDirect(bufferSize);
+        this.interimReadBuffer = ByteBuffer.allocateDirect(Constants.BYTE_BUFFER_SIZE);
     }
 
     @Override

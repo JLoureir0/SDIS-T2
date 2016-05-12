@@ -1,4 +1,4 @@
-package IPeer;
+package ipeer;
 
 public class Client {
 }

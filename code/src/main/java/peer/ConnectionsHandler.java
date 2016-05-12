@@ -1,4 +1,6 @@
-package Peer;
+package peer;
+
+import peer.actions.Action;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -8,15 +10,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class ConnectionsHandler implements Runnable {
 
-    final private static int BUFFER_SIZE = 1024 * 1024;
-
     final private ConnectionsReader connectionsReader;
     final private ConnectionsWriter connectionsWriter;
     final private Protocol protocol;
 
     public ConnectionsHandler(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
-        this.connectionsReader = new ConnectionsReader(queuedConnections, BUFFER_SIZE);
-        this.connectionsWriter = new ConnectionsWriter(this.connectionsReader.getActiveConnections(), BUFFER_SIZE);
+        this.connectionsReader = new ConnectionsReader(queuedConnections);
+        this.connectionsWriter = new ConnectionsWriter(this.connectionsReader.getActiveConnections());
 
         new Thread(this.connectionsReader).start();
         new Thread(this.connectionsWriter).start();
