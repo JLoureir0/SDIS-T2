@@ -13,7 +13,6 @@ final public class Connection implements Comparator<Connection> {
     final private SocketChannel socketChannel;
     private long id;
     private boolean alive = true;
-    private Message partialMessage;
 
     public Connection(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
@@ -67,10 +66,6 @@ final public class Connection implements Comparator<Connection> {
 
     public long getId() {
         return id;
-    }
-
-    public Message getPartialMessage() {
-        return partialMessage;
     }
 
     @Override

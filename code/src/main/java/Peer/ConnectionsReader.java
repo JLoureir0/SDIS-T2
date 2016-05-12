@@ -96,7 +96,7 @@ public class ConnectionsReader implements Runnable {
             return;
         }
 
-        connection.partialMessage.writeToMessage(interimByteBuffer);
+        connection.partialMessage.writeToMessage(interimReadBuffer);
 
         int endIndex = HttpUtil.parseHttpRequest(this.nextMessage.sharedArray, this.nextMessage.offset, this.nextMessage.offset + this.nextMessage.length, (HttpHeaders) this.nextMessage.metaData);
         if (endIndex != -1) {
@@ -108,7 +108,7 @@ public class ConnectionsReader implements Runnable {
             completeMessages.add(nextMessage);
             nextMessage = message;
         }
-        interimByteBuffer.clear();
+        interimReadBuffer.clear();
     }
 
     public ConcurrentHashMap<Long, Connection> getActiveConnections() {

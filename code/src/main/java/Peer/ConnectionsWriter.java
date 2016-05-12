@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ConnectionsWriter implements Runnable {
 
     final private ConcurrentHashMap<Long, Connection> activeConnections;
-    final private LinkedBlockingQueue<Message> outboundMessages;
+    final private LinkedBlockingQueue<Action> actions;
 
     final private Selector writeSelector;
     final private ByteBuffer interimWriteBuffer;
@@ -17,7 +17,7 @@ public class ConnectionsWriter implements Runnable {
 
     public ConnectionsWriter(ConcurrentHashMap<Long, Connection> activeConnections, int bufferSize) throws IOException {
         this.activeConnections = activeConnections;
-        this.outboundMessages = new LinkedBlockingQueue<>();
+        this.actions = new LinkedBlockingQueue<>();
         this.writeSelector = Selector.open();
         this.interimWriteBuffer = ByteBuffer.allocateDirect(bufferSize);
     }
@@ -27,7 +27,7 @@ public class ConnectionsWriter implements Runnable {
         
     }
 
-    public LinkedBlockingQueue<Message> getOutboundMessages() {
-        return outboundMessages;
+    public LinkedBlockingQueue<Action> getActions() {
+        return actions;
     }
 }

@@ -10,6 +10,8 @@ package Peer;
 
         private TYPE type = null;
 
+        final private long connectionId;
+
         public byte[] sharedArray = null;
         public int offset = 0; //offset into sharedArray where this message data starts.
         public int capacity = 0; //the size of the section in the sharedArray allocated to this message.

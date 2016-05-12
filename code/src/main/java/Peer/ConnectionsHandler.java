@@ -1,10 +1,8 @@
 package Peer;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -14,21 +12,28 @@ final public class ConnectionsHandler implements Runnable {
 
     final private ConnectionsReader connectionsReader;
     final private ConnectionsWriter connectionsWriter;
+    final private Protocol protocol;
 
     public ConnectionsHandler(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
-
         this.connectionsReader = new ConnectionsReader(queuedConnections, BUFFER_SIZE);
         this.connectionsWriter = new ConnectionsWriter(this.connectionsReader.getActiveConnections(), BUFFER_SIZE);
 
         new Thread(this.connectionsReader).start();
         new Thread(this.connectionsWriter).start();
-
-//        this.writeSelector = Selector.open();
+        this.protocol = new Protocol(this.connectionsReader.getActiveConnections());
     }
 
     public void run() {
+        LinkedBlockingQueue<Message> inboundMessages = this.connectionsReader.getInboundMessages();
+        LinkedBlockingQueue<Action> actions = this.connectionsWriter.getActions();
+
         while (true) {
-            LinkedBlockingQueue<Message> inboundMessages = this.connectionsReader.getInboundMessages();
+            try {
+                Action action = protocol.transition(inboundMessages.take());
+                actions.put(action);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
