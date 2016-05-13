@@ -15,7 +15,7 @@ final public class ConnectionsHandler implements Runnable {
     public ConnectionsHandler(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
         this.connectionsReader = new ConnectionsReader(queuedConnections);
         this.protocol = new Protocol(this.connectionsReader.getActiveConnections());
-        this.connectionsWriter = new ConnectionsWriter(this.connectionsReader.getActiveConnections());
+        this.connectionsWriter = new ConnectionsWriter();
 
         new Thread(this.connectionsReader).start();
         new Thread(this.connectionsWriter).start();

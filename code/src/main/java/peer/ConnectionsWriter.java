@@ -10,34 +10,23 @@ import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConnectionsWriter implements Runnable {
 
-    final private ConcurrentHashMap<Long, Connection> activeConnections;
-    final private LinkedBlockingQueue<Action> actions;
+    final private ConcurrentHashMap<Long, Action> actions;
 
     final private Selector writeSelector;
     final private ByteBuffer interimWriteBuffer;
 
 
-    public ConnectionsWriter(ConcurrentHashMap<Long, Connection> activeConnections) throws IOException {
-        this.activeConnections = activeConnections;
-        this.actions = new LinkedBlockingQueue<>();
+    public ConnectionsWriter() throws IOException {
+        this.actions = new ConcurrentHashMap<>();
         this.writeSelector = Selector.open();
         this.interimWriteBuffer = ByteBuffer.allocateDirect(Constants.BYTE_BUFFER_SIZE);
     }
 
     @Override
     public void run() {
-        Iterator<Action> actionIterator = actions.iterator();
-        while (actionIterator.hasNext()) {
-            Action action = actionIterator.next();
-            if (action.execute(this.interimWriteBuffer)) {
-                actionIterator.remove();
-            }
-        }
-
         try {
             if (this.writeSelector.selectNow() > 0) {
                 Set<SelectionKey> selectionKeys = this.writeSelector.selectedKeys();
@@ -47,7 +36,7 @@ public class ConnectionsWriter implements Runnable {
                     SelectionKey selectionKey = keyIterator.next();
                     Action action = (Action) selectionKey.attachment();
                     if (action.execute(this.interimWriteBuffer)) {
-                        actionIterator.remove();
+                        this.actions.remove(action.getConnection().getId());
                         selectionKey.cancel();
                     }
                     keyIterator.remove();
@@ -61,6 +50,7 @@ public class ConnectionsWriter implements Runnable {
 
     public void put(Action action) throws ClosedChannelException {
         Connection connection = action.getConnection();
+        this.actions.put(connection.getId(), action);
         connection.register(this.writeSelector, SelectionKey.OP_WRITE, action);
     }
 }
