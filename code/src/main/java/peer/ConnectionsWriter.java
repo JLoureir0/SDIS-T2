@@ -14,10 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConnectionsWriter implements Runnable {
 
     final private ConcurrentHashMap<Long, Action> actions;
-
     final private Selector writeSelector;
     final private ByteBuffer interimWriteBuffer;
-
 
     public ConnectionsWriter() throws IOException {
         this.actions = new ConcurrentHashMap<>();
@@ -36,7 +34,9 @@ public class ConnectionsWriter implements Runnable {
                     SelectionKey selectionKey = keyIterator.next();
                     Action action = (Action) selectionKey.attachment();
                     if (action.execute(this.interimWriteBuffer)) {
-                        this.actions.remove(action.getConnection().getId());
+                        Connection connection = action.getConnection();
+                        this.actions.remove(connection.getId());
+                        connection.setLockedToAction(false);
                         selectionKey.cancel();
                     }
                     keyIterator.remove();
@@ -50,7 +50,10 @@ public class ConnectionsWriter implements Runnable {
 
     public void put(Action action) throws ClosedChannelException {
         Connection connection = action.getConnection();
-        this.actions.put(connection.getId(), action);
+        connection.setLockedToAction(true);
+        if (this.actions.putIfAbsent(connection.getId(), action) != null) {
+            throw new IllegalStateException("Only one action per connection expected");
+        }
         connection.register(this.writeSelector, SelectionKey.OP_WRITE, action);
     }
 }
