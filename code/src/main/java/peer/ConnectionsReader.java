@@ -14,8 +14,8 @@ public class ConnectionsReader implements Runnable {
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
     private long connections_loop_counter = CONNECTIONS_COUNTER_START;
 
-    final private LinkedBlockingQueue<Connection> connectionsQueue;
     final private ConcurrentHashMap<Long, Connection> activeConnections;
+    final private LinkedBlockingQueue<Connection> connectionsQueue;
     final private LinkedBlockingQueue<Message> inboundMessages;
 
     final private Selector readSelector;
@@ -44,7 +44,6 @@ public class ConnectionsReader implements Runnable {
     private void process_queued_connections() throws IOException {
 
         Connection connection = this.connectionsQueue.poll();
-
         while (connection != null) {
             this.to_active_connection(connection);
             connection = this.connectionsQueue.poll();
@@ -59,14 +58,11 @@ public class ConnectionsReader implements Runnable {
         } while (this.activeConnections.putIfAbsent(this.connections_loop_counter, connection) != null);
 
         connection.setBlocking(false);
-        SelectionKey key = connection.register(this.readSelector, SelectionKey.OP_READ);
-        key.attach(connection);
+        connection.register(this.readSelector, SelectionKey.OP_READ, connection);
     }
 
     private void check_for_connection_data() throws IOException {
-        int readReady = this.readSelector.selectNow();
-
-        if (readReady > 0) {
+        if (this.readSelector.selectNow() > 0) {
             Set<SelectionKey> selectedKeys = this.readSelector.selectedKeys();
             Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
 

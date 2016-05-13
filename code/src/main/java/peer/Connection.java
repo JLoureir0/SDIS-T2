@@ -62,6 +62,10 @@ final public class Connection implements Comparator<Connection> {
         return this.socketChannel.register(selector, operation);
     }
 
+    public SelectionKey register(Selector selector, int operation, Object attachment) throws ClosedChannelException {
+        return this.socketChannel.register(selector, operation, attachment);
+    }
+
     public void setId(long id) {
         this.id = id;
     }

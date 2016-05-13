@@ -8,11 +8,11 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-public class ActionReceiveFile extends Action {
+public class ActionOnFileReceive extends Action {
 
     final private AsynchronousFileChannel fileChannel;
 
-    public ActionReceiveFile(Connection connection, String filePath) throws IOException {
+    public ActionOnFileReceive(Connection connection, String filePath) throws IOException {
         super(connection);
         this.fileChannel = AsynchronousFileChannel.open(Paths.get(filePath), StandardOpenOption.WRITE);
     }

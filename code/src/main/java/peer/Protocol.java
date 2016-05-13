@@ -1,7 +1,7 @@
 package peer;
 
 import peer.actions.Action;
-import peer.actions.ActionReceiveFile;
+import peer.actions.ActionOnFileReceive;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +40,7 @@ final public class Protocol {
                     case FILE_RECEIVE:
                         connection.setState(STATE.START);
                         try {
-                            return new ActionReceiveFile(connection, "path/where/to/save/file");
+                            return new ActionOnFileReceive(connection, "path/where/to/save/file");
                         } catch (IOException e) {
                             e.printStackTrace();
                             return null;
