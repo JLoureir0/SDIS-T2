@@ -13,5 +13,9 @@ public abstract class Action {
         this.connection.setLockedToAction(true);
     }
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public abstract boolean execute(ByteBuffer byteBuffer);
 }

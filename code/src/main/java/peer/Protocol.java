@@ -24,7 +24,7 @@ final public class Protocol {
         long connectionId = inboundMessage.getConnectionId();
         Connection connection = this.activeConnections.get(connectionId);
         if (connection == null) {
-            throw new IllegalStateException("connection should be present in activeConnections");
+            throw new IllegalStateException("Connection should be present in activeConnections");
         }
 
         if (connection.isLockedToAction()) {
@@ -37,7 +37,7 @@ final public class Protocol {
         switch (connectionState) {
             case START:
                 switch (messageType) {
-                    case FILE_TRANSFER:
+                    case FILE_RECEIVE:
                         connection.setState(STATE.START);
                         try {
                             return new ActionReceiveFile(connection, "path/where/to/save/file");

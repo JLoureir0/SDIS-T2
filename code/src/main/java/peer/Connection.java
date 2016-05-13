@@ -10,11 +10,11 @@ import java.util.Comparator;
 
 final public class Connection implements Comparator<Connection> {
 
+    private Protocol.STATE state = Protocol.STATE.START;
     final private SocketChannel socketChannel;
     private boolean lockedToAction = false;
-    private long id;
     private boolean alive = true;
-    private Protocol.STATE state = Protocol.STATE.START;
+    private long id;
 
     public Connection(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;

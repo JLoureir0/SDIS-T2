@@ -5,7 +5,7 @@ package peer;
     public class Message {
 
         public enum TYPE {
-            FILE_TRANSFER
+            FILE_RECEIVE
         }
 
         final private TYPE type;
