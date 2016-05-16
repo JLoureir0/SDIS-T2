@@ -11,13 +11,13 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ConnectionsWriter implements Runnable {
+public class ConnectionsAction implements Runnable {
 
     final private ConcurrentHashMap<Long, Action> actions;
     final private Selector writeSelector;
     final private ByteBuffer interimWriteBuffer;
 
-    public ConnectionsWriter() throws IOException {
+    public ConnectionsAction() throws IOException {
         this.actions = new ConcurrentHashMap<>();
         this.writeSelector = Selector.open();
         this.interimWriteBuffer = ByteBuffer.allocateDirect(Constants.BYTE_BUFFER_SIZE);
@@ -54,6 +54,6 @@ public class ConnectionsWriter implements Runnable {
         if (this.actions.putIfAbsent(connection.getId(), action) != null) {
             throw new IllegalStateException("Only one action per connection expected");
         }
-        connection.register(this.writeSelector, SelectionKey.OP_WRITE, action);
+        connection.register(this.writeSelector, action.getOperation(), action);
     }
 }

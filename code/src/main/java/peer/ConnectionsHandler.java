@@ -9,16 +9,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 final public class ConnectionsHandler implements Runnable {
 
     final private ConnectionsReader connectionsReader;
-    final private ConnectionsWriter connectionsWriter;
+    final private ConnectionsAction connectionsAction;
     final private Protocol protocol;
 
     public ConnectionsHandler(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
         this.connectionsReader = new ConnectionsReader(queuedConnections);
         this.protocol = new Protocol(this.connectionsReader.getActiveConnections());
-        this.connectionsWriter = new ConnectionsWriter();
+        this.connectionsAction = new ConnectionsAction();
 
         new Thread(this.connectionsReader).start();
-        new Thread(this.connectionsWriter).start();
+        new Thread(this.connectionsAction).start();
     }
 
     public void run() {
@@ -26,7 +26,7 @@ final public class ConnectionsHandler implements Runnable {
         while (true) {
             try {
                 Action action = protocol.transition(inboundMessages.take());
-                this.connectionsWriter.put(action);
+                this.connectionsAction.put(action);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ClosedChannelException e) {

@@ -95,7 +95,7 @@ public class ConnectionsReader implements Runnable {
 
 // To fix
 /*        connection.partialMessage.writeToMessage(interimReadBuffer);
-
+np730u3e
         int endIndex = HttpUtil.parseHttpRequest(this.nextMessage.sharedArray, this.nextMessage.offset, this.nextMessage.offset + this.nextMessage.length, (HttpHeaders) this.nextMessage.metaData);
         if (endIndex != -1) {
             Message message = this.messageBuffer.getMessage();
