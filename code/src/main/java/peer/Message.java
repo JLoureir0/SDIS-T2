@@ -2,27 +2,22 @@ package peer;
 
 /* TO FIX */
 
-    import java.nio.ByteBuffer;
+public class Message {
 
-    public class Message {
+    final private TYPE type;
+    final private long connectionId;
+    public byte[] sharedArray = null;
+    public int offset = 0; //offset into sharedArray where this message data starts.
+    public int capacity = 0; //the size of the section in the sharedArray allocated to this message.
+    public int length = 0; //the number of bytes used of the allocated section.
+    public Message(TYPE messageType, long connectionId) {
+        this.type = messageType;
+        this.connectionId = connectionId;
+    }
 
-        public enum TYPE {
-            FILE_RECEIVE
-        }
-
-        final private TYPE type;
-
-        final private long connectionId;
-
-        public byte[] sharedArray = null;
-        public int offset = 0; //offset into sharedArray where this message data starts.
-        public int capacity = 0; //the size of the section in the sharedArray allocated to this message.
-        public int length = 0; //the number of bytes used of the allocated section.
-
-        public Message(TYPE messageType, long connectionId) {
-            this.type = messageType;
-            this.connectionId= connectionId;
-        }
+    public TYPE getType() {
+        return type;
+    }
 // To fix
 ///*
 //        public Message(WannabeMessage wannabeMessage) {
@@ -104,11 +99,11 @@ package peer;
 //            return 0;
 //        }
 
-        public TYPE getType() {
-            return type;
-        }
-
-        public long getConnectionId() {
-            return connectionId;
-        }
+    public long getConnectionId() {
+        return connectionId;
     }
+
+    public enum TYPE {
+        FILE_RECEIVE
+    }
+}

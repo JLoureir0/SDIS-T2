@@ -12,14 +12,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ConnectionsReader implements Runnable {
 
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
-    private long connections_loop_counter = CONNECTIONS_COUNTER_START;
-
     final private ConcurrentHashMap<Long, Connection> activeConnections;
     final private LinkedBlockingQueue<Connection> connectionsQueue;
     final private LinkedBlockingQueue<Message> inboundMessages;
-
     final private Selector readSelector;
     final private ByteBuffer interimReadBuffer;
+    private long connections_loop_counter = CONNECTIONS_COUNTER_START;
 
     public ConnectionsReader(LinkedBlockingQueue<Connection> queuedConnections) throws IOException {
         this.connectionsQueue = queuedConnections;
@@ -95,7 +93,6 @@ public class ConnectionsReader implements Runnable {
 
 // To fix
 /*        connection.partialMessage.writeToMessage(interimReadBuffer);
-np730u3e
         int endIndex = HttpUtil.parseHttpRequest(this.nextMessage.sharedArray, this.nextMessage.offset, this.nextMessage.offset + this.nextMessage.length, (HttpHeaders) this.nextMessage.metaData);
         if (endIndex != -1) {
             Message message = this.messageBuffer.getMessage();

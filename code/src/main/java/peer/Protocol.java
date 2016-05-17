@@ -7,12 +7,6 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 final public class Protocol {
-    public enum STATE {
-        START,
-        ACK,
-        SOMESTATE
-    }
-
     final private ConcurrentHashMap<Long, Connection> activeConnections;
 
     public Protocol(ConcurrentHashMap<Long, Connection> activeConnections) {
@@ -51,5 +45,11 @@ final public class Protocol {
                 throw new IllegalStateException("Unknown State");
         }
         return null;
+    }
+
+    public enum STATE {
+        START,
+        ACK,
+        SOMESTATE
     }
 }

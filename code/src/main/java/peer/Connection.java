@@ -10,8 +10,8 @@ import java.util.Comparator;
 
 final public class Connection implements Comparator<Connection> {
 
-    private Protocol.STATE state = Protocol.STATE.START;
     final private SocketChannel socketChannel;
+    private Protocol.STATE state = Protocol.STATE.START;
     private boolean lockedToAction = false;
     private boolean alive = true;
     private long id;
@@ -66,16 +66,20 @@ final public class Connection implements Comparator<Connection> {
         return this.socketChannel.register(selector, operation, attachment);
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public long getId() {
         return id;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public Protocol.STATE getState() {
         return state;
+    }
+
+    public void setState(Protocol.STATE state) {
+        this.state = state;
     }
 
     @Override
@@ -100,9 +104,5 @@ final public class Connection implements Comparator<Connection> {
 
     public void setLockedToAction(boolean lockedToAction) {
         this.lockedToAction = lockedToAction;
-    }
-
-    public void setState(Protocol.STATE state) {
-        this.state = state;
     }
 }

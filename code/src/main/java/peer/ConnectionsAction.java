@@ -38,6 +38,8 @@ public class ConnectionsAction implements Runnable {
                         this.actions.remove(connection.getId());
                         connection.setLockedToAction(false);
                         selectionKey.cancel();
+                    } else if (action.newOperation()) {
+                        selectionKey.interestOps(action.getOperation());
                     }
                     keyIterator.remove();
                 }

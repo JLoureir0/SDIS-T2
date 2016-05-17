@@ -8,6 +8,7 @@ public abstract class Action {
 
     final protected Connection connection;
     protected Integer operation;
+    protected boolean newOperation = true;
 
     Action(Connection connection) {
         this.operation = null;
@@ -20,8 +21,14 @@ public abstract class Action {
     }
 
     public Integer getOperation() {
+        this.newOperation = false;
         return this.operation;
     }
 
+    public boolean newOperation() {
+        return newOperation;
+    }
+
     public abstract boolean execute(ByteBuffer byteBuffer);
+
 }

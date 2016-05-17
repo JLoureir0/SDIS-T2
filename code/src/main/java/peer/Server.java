@@ -12,9 +12,9 @@ final public class Server {
 
     private ConnectionsHandler connectionsHandler = null;
 
-    public Server(int port, int queuedConnectionsSize) {
+    public Server(int port) {
         this.port = port;
-        this.queuedConnections = new LinkedBlockingQueue<>(queuedConnectionsSize);
+        this.queuedConnections = new LinkedBlockingQueue<>();
     }
 
     public void start() throws IOException {
