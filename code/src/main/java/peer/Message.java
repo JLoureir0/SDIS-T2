@@ -4,6 +4,10 @@ package peer;
 
 public class Message {
 
+    public enum TYPE {
+        FILE_RECEIVE
+    }
+
     final private TYPE type;
     final private long connectionId;
     public byte[] sharedArray = null;
@@ -101,9 +105,5 @@ public class Message {
 
     public long getConnectionId() {
         return connectionId;
-    }
-
-    public enum TYPE {
-        FILE_RECEIVE
     }
 }

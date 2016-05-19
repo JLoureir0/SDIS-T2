@@ -1,3 +1,5 @@
+import commandLineInterface.CommandLineInterface;
+import commandLineParser.CommandLineParser;
 import peer.Server;
 
 import java.io.IOException;
@@ -25,5 +27,6 @@ public class Main {
         }
 
         CommandLineInterface cliInterface = new CommandLineInterface();
+        cliInterface.run();
     }
 }

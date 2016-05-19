@@ -1,3 +1,5 @@
+package commandLineParser;
+
 import java.util.HashMap;
 
 public class CommandLineParser {

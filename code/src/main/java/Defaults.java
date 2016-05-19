@@ -1,3 +1,5 @@
+import commandLineParser.CommandLineParser;
+
 import java.util.HashMap;
 
 public class Defaults {
