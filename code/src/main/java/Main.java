@@ -1,6 +1,6 @@
 import pinypon.cli.CLI;
 import pinypon.cli.parser.Parser;
-import peer.Server;
+import pinypon.Server;
 import pinypon.utils.Defaults;
 
 import java.io.IOException;

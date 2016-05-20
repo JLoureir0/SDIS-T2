@@ -1,5 +1,7 @@
 package peer;
 
+import pinypon.utils.Defaults;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -24,7 +26,7 @@ public class ConnectionsReader implements Runnable {
         this.activeConnections = new ConcurrentHashMap<>();
         this.inboundMessages = new LinkedBlockingQueue<>();
         this.readSelector = Selector.open();
-        this.interimReadBuffer = ByteBuffer.allocateDirect(Constants.BYTE_BUFFER_SIZE);
+        this.interimReadBuffer = ByteBuffer.allocateDirect(Defaults.BYTE_BUFFER_SIZE);
     }
 
     @Override

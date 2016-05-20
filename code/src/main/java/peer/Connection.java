@@ -1,5 +1,7 @@
 package peer;
 
+import pinypon.protocol.chat.Protocol;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;

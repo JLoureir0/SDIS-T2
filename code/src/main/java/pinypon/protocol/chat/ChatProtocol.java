@@ -1,3 +1,5 @@
+package pinypon.protocol.chat;
+
 import java.net.Socket;
 
 public class ChatProtocol {

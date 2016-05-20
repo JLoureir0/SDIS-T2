@@ -1,6 +1,7 @@
 package peer;
 
 import peer.actions.Action;
+import pinypon.utils.Defaults;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -20,7 +21,7 @@ public class ConnectionsAction implements Runnable {
     public ConnectionsAction() throws IOException {
         this.actions = new ConcurrentHashMap<>();
         this.writeSelector = Selector.open();
-        this.interimWriteBuffer = ByteBuffer.allocateDirect(Constants.BYTE_BUFFER_SIZE);
+        this.interimWriteBuffer = ByteBuffer.allocateDirect(Defaults.BYTE_BUFFER_SIZE);
     }
 
     @Override

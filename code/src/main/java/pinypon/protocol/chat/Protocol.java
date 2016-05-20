@@ -1,5 +1,7 @@
-package peer;
+package pinypon.protocol.chat;
 
+import peer.Connection;
+import peer.Message;
 import peer.actions.Action;
 import peer.actions.ActionOnFileReceive;
 

@@ -1,4 +1,6 @@
-package peer;
+package pinypon.listener;
+
+import peer.Connection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -6,13 +8,13 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.LinkedBlockingQueue;
 
-final public class Listener implements Runnable {
+public class DHTListener {
 
     private int port;
     private ServerSocketChannel serverSocket;
     private LinkedBlockingQueue<Connection> queuedConnections;
 
-    public Listener(int port, LinkedBlockingQueue<Connection> queuedConnections) {
+    public ChatListener(int port, LinkedBlockingQueue<Connection> queuedConnections) {
         this.port = port;
         this.queuedConnections = queuedConnections;
     }
@@ -35,4 +37,3 @@ final public class Listener implements Runnable {
         }
     }
 }
-
