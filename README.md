@@ -10,7 +10,8 @@
 
 #### Add friend ####
 ```
-<CR><message_type><LF>[<MESSAGE>]
+<CR><message_type><size><LF>[<MESSAGE>]
 <message_type> = 0
+<size> = size of the message
 <MESSAGE> = invite message
 ```
