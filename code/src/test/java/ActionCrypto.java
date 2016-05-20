@@ -1,6 +1,6 @@
-import encryption.authentication.CreateNouce;
+import pinypon.action.encryption.authentication.CreateNouce;
 import org.junit.Test;
-import utils.Defaults;
+import pinypon.utils.Defaults;
 
 import static org.junit.Assert.*;
 
@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
  *
  * @author hugdru, @date 05/05/16 17:46
  */
-public class LibraryTest {
+public class ActionCrypto {
     @Test public void testSomeLibraryMethod() {
         CreateNouce classUnderTest = new CreateNouce();
         assertEquals(Defaults.NOUNCE_SIZE, classUnderTest.createNouce().length);

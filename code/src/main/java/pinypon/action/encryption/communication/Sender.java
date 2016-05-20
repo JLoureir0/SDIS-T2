@@ -1,4 +1,4 @@
-package encryption.communication;
+package pinypon.action.encryption.communication;
 
 /**
  * Created by hacker on 20/05/2016.

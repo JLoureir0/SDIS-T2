@@ -54,7 +54,7 @@ public class ConnectionsAction implements Runnable {
         Connection connection = action.getConnection();
         connection.setLockedToAction(true);
         if (this.actions.putIfAbsent(connection.getId(), action) != null) {
-            throw new IllegalStateException("Only one action per connection expected");
+            throw new IllegalStateException("Only one pinypon.action per connection expected");
         }
         connection.register(this.writeSelector, action.getOperation(), action);
     }

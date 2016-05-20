@@ -1,7 +1,7 @@
-import commandLineInterface.CommandLineInterface;
-import commandLineParser.CommandLineParser;
-import org.abstractj.kalium.keys.KeyPair;
+import pinypon.cli.CLI;
+import pinypon.cli.parser.Parser;
 import peer.Server;
+import pinypon.utils.Defaults;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -9,11 +9,11 @@ import java.util.HashMap;
 public class Main {
     public static void main(String[] args) {
 
-        CommandLineParser cliParser = new CommandLineParser(args);
-        HashMap<CommandLineParser.Option, Object> parsed = cliParser.parse();
+        Parser cliParser = new Parser(args);
+        HashMap<Parser.Option, Object> parsed = cliParser.parse();
 
-        int server_port = (int) utils.Defaults.cliParsing.get(CommandLineParser.Option.SERVER_PORT);
-        Object obj = parsed.get(CommandLineParser.Option.SERVER_PORT);
+        int server_port = (int) Defaults.cliParsing.get(Parser.Option.SERVER_PORT);
+        Object obj = parsed.get(Parser.Option.SERVER_PORT);
         if (obj != null) {
             server_port = (int) obj;
         }
@@ -27,7 +27,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        CommandLineInterface cliInterface = new CommandLineInterface();
+        CLI cliInterface = new CLI();
         cliInterface.run();
     }
 }

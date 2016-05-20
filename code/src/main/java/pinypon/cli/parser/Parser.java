@@ -1,8 +1,8 @@
-package commandLineParser;
+package pinypon.cli.parser;
 
 import java.util.HashMap;
 
-public class CommandLineParser {
+public class Parser {
 
     static final private String PORT_LONG = "--listenerport";
     static final private String PORT_SHORT = "-lp";
@@ -14,7 +14,7 @@ public class CommandLineParser {
         SERVER_PORT
     }
 
-    public CommandLineParser(String []args) {
+    public Parser(String []args) {
         this.args = args;
     }
 

@@ -1,8 +1,8 @@
-package encryption.authentication;
+package pinypon.action.encryption.authentication;
 
 
 import org.abstractj.kalium.crypto.Random;
-import utils.Defaults;
+import pinypon.utils.Defaults;
 
 /**
  * Created by hacker on 20/05/2016.

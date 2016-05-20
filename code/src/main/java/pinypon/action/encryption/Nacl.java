@@ -1,4 +1,4 @@
-package encryption;
+package pinypon.action.encryption;
 
 import org.abstractj.kalium.keys.KeyPair;
 import org.abstractj.kalium.keys.PrivateKey;

@@ -22,7 +22,7 @@ final public class Protocol {
         }
 
         if (connection.isLockedToAction()) {
-            throw new IllegalStateException("Connection should only receive messages after an action has ended");
+            throw new IllegalStateException("Connection should only receive messages after an pinypon.action has ended");
         }
 
         STATE connectionState = connection.getState();
