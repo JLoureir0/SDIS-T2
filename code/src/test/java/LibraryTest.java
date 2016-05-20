@@ -1,4 +1,7 @@
+import encryption.authentication.CreateNouce;
 import org.junit.Test;
+import utils.Defaults;
+
 import static org.junit.Assert.*;
 
 /*
@@ -9,7 +12,7 @@ import static org.junit.Assert.*;
  */
 public class LibraryTest {
     @Test public void testSomeLibraryMethod() {
-        Library classUnderTest = new Library();
-        assertTrue("someLibraryMethod should return 'true'", classUnderTest.someLibraryMethod());
+        CreateNouce classUnderTest = new CreateNouce();
+        assertEquals(Defaults.NOUNCE_SIZE, classUnderTest.createNouce().length);
     }
 }

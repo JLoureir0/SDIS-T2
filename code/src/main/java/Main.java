@@ -1,5 +1,6 @@
 import commandLineInterface.CommandLineInterface;
 import commandLineParser.CommandLineParser;
+import org.abstractj.kalium.keys.KeyPair;
 import peer.Server;
 
 import java.io.IOException;
@@ -11,7 +12,7 @@ public class Main {
         CommandLineParser cliParser = new CommandLineParser(args);
         HashMap<CommandLineParser.Option, Object> parsed = cliParser.parse();
 
-        int server_port = (int) Defaults.cliParsing.get(CommandLineParser.Option.SERVER_PORT);
+        int server_port = (int) utils.Defaults.cliParsing.get(CommandLineParser.Option.SERVER_PORT);
         Object obj = parsed.get(CommandLineParser.Option.SERVER_PORT);
         if (obj != null) {
             server_port = (int) obj;
