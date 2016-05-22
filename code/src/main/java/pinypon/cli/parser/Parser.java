@@ -4,17 +4,14 @@ import java.util.HashMap;
 
 public class Parser {
 
-    static final private String DHT_PORT_LONG = "--dhtport";
-    static final private String DHT_PORT_SHORT = "-dp";
-    static final private String CHAT_PORT_LONG = "--chatport";
-    static final private String CHAT_PORT_SHORT = "-cp";
+    static final private String PORT_LONG = "--port";
+    static final private String PORT_SHORT = "-p";
 
     final private String []args;
     private HashMap<Option, Object> parsed = new HashMap<>();
 
     public enum Option {
-        DHT_PORT,
-        CHAT_PORT
+        PORT
     }
 
     public Parser(String []args) {
@@ -25,27 +22,16 @@ public class Parser {
         int args_length = this.args.length;
         for (int index = 0; index < args_length; ++index) {
             switch(this.args[index]) {
-                case DHT_PORT_LONG:
-                case DHT_PORT_SHORT:
+                case PORT_LONG:
+                case PORT_SHORT:
                     if ((index = index + 1) >= args_length) {
                         throw new IllegalArgumentException(args[index - 1] + " port");
                     }
-                    int dht_port = Integer.parseInt(args[index]);
-                    if (dht_port < 1 || dht_port > 65535) {
+                    int port = Integer.parseInt(args[index]);
+                    if (port < 1 || port > 65535) {
                         throw new IllegalArgumentException(args[index - 1] + " 1-65535");
                     }
-                    this.parsed.put(Option.DHT_PORT, dht_port);
-                    break;
-                case CHAT_PORT_LONG:
-                case CHAT_PORT_SHORT:
-                    if ((index = index + 1) >= args_length) {
-                        throw new IllegalArgumentException(args[index - 1] + " port");
-                    }
-                    int chat_port = Integer.parseInt(args[index]);
-                    if (chat_port < 1 || chat_port > 65535) {
-                        throw new IllegalArgumentException(args[index - 1] + " 1-65535");
-                    }
-                    this.parsed.put(Option.CHAT_PORT, chat_port);
+                    this.parsed.put(Option.PORT, port);
                     break;
                 default:
                     throw new IllegalStateException(args[index] + " invalid option");
