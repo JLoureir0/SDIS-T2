@@ -18,7 +18,7 @@ final public class Listener implements Runnable {
         this.socket = new DatagramSocket(port);
         this.packetBuffer = new byte[Defaults.UDP_BUFFER_SIZE];
         this.handler = new Handler();
-        this.handler.run();
+        new Thread(this.handler).start();
     }
 
     public void run() {

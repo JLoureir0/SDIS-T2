@@ -15,7 +15,8 @@ dependencies {
 }
 
 task run(type: JavaExec) {
-    main = 'Main'
+    standardInput = System.in
+    main = 'Pinypon'
     classpath = sourceSets.main.runtimeClasspath
     if(project.hasProperty('args')) {
         args project.args.split('\\s+')

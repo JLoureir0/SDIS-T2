@@ -1,6 +1,7 @@
 package pinypon.interaction.parser;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Parser {
 
@@ -23,7 +24,7 @@ public class Parser {
 
     public HashMap<Option, Object> parse() {
         int args_length = this.args.length;
-        for (int index = 0; index < args_length; ++index) {
+        for (int index = 1; index < args_length; ++index) {
             switch(this.args[index]) {
                 case PORT_LONG:
                 case PORT_SHORT:

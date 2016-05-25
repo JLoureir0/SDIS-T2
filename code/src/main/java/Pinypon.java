@@ -22,6 +22,9 @@ public class Pinypon {
             case "cli":
                 new CLI(args).run();
                 break;
+            default:
+                usage();
+                System.exit(1);
         }
     }
 

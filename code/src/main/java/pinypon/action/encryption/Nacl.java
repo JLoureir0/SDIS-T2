@@ -22,4 +22,5 @@ public class Nacl {
     public PublicKey getPublicKey() {
         return publicKey;
     }
+
 }

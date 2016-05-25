@@ -1,5 +1,7 @@
 package pinypon.user;
 
+import org.abstractj.kalium.keys.PrivateKey;
+import org.abstractj.kalium.keys.PublicKey;
 import pinypon.utils.Defaults;
 
 import java.io.*;
@@ -7,17 +9,22 @@ import java.util.HashSet;
 
 public class User extends Entity {
 
-    private String privateKey;
+    private String password;
+    private PrivateKey privateKey;
     private HashSet<Friend> friends;
     private String jsonPath;
 
-    public User(String username, String jsonPath, String publicKey, String privateKey) {
+    public User(String username, String password, String jsonPath, PublicKey publicKey, PrivateKey privateKey) {
         super(username, publicKey);
+        if (password.isEmpty() || jsonPath.isEmpty() || privateKey == null) {
+            throw new IllegalArgumentException("Fields cannot be empty.");
+        }
+        this.password = password;
         this.jsonPath = jsonPath;
         this.privateKey = privateKey;
     }
 
-    public String getPrivateKey() {
+    public PrivateKey getPrivateKey() {
         return privateKey;
     }
 
@@ -25,7 +32,11 @@ public class User extends Entity {
         return jsonPath;
     }
 
-    public void setPrivateKey(String privateKey) {
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setPrivateKey(PrivateKey privateKey) {
         this.privateKey = privateKey;
     }
 
@@ -60,12 +71,7 @@ public class User extends Entity {
         return true;
     }
 
-    public static User restore(String path) {
-        try {
-            return Defaults.gson.fromJson(new FileReader(path), User.class);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public static User restore(String path) throws FileNotFoundException {
+        return Defaults.gson.fromJson(new FileReader(path), User.class);
     }
 }

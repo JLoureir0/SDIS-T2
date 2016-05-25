@@ -1,10 +1,15 @@
 package pinypon.user;
 
+import org.abstractj.kalium.keys.PublicKey;
+
 public abstract class Entity implements Comparable<Entity> {
     private String username;
-    private String publicKey;
+    private PublicKey publicKey;
 
-    public Entity(String username, String publicKey) {
+    public Entity(String username, PublicKey publicKey) {
+        if (username.isEmpty() || publicKey == null) {
+            throw new IllegalArgumentException("Fields cannot be empty.");
+        }
         this.username = username;
         this.publicKey = publicKey;
     }
@@ -13,7 +18,7 @@ public abstract class Entity implements Comparable<Entity> {
         return username;
     }
 
-    public String getPublicKey() {
+    public PublicKey getPublicKey() {
         return publicKey;
     }
 
@@ -21,13 +26,13 @@ public abstract class Entity implements Comparable<Entity> {
         this.username = username;
     }
 
-    public void setPublicKey(String publicKey) {
+    public void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
     }
 
     @Override
     public int compareTo(Entity entity) {
-        return this.getPublicKey().compareTo(entity.getPublicKey());
+        return this.getPublicKey().toString().compareTo(entity.getPublicKey().toString());
     }
 
     @Override
