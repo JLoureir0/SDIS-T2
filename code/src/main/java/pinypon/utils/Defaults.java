@@ -1,6 +1,10 @@
 package pinypon.utils;
 
+import com.google.gson.Gson;
+
 public class Defaults {
+
+    public static final String APP_NAME = "Pinypon";
     public static final int PORT = 44321;
     public static final int NOUNCE_SIZE = 24;
     public static final int UDP_BUFFER_SIZE = 1024;
@@ -9,4 +13,7 @@ public class Defaults {
 
     public static final String PROTOCOL_CHAT_MESSAGE = "MESSAGE";
     public static final String PROTOCOL_CHAT_FILE = "FILE";
+
+    public static final Gson gson = new Gson();
+    public static final String USER_JSON_PATH = "user.json";
 }

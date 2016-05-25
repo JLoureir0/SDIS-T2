@@ -1,25 +1,31 @@
-import pinypon.cli.CLI;
-import pinypon.cli.parser.Parser;
-import pinypon.listener.Listener;
-import pinypon.utils.Defaults;
-import java.util.HashMap;
+import pinypon.interaction.cli.CLI;
+import pinypon.interaction.gui.Gui;
+
+import java.util.Locale;
+
+import static javafx.application.Application.launch;
 
 public class Pinypon {
+    private static final String USAGE = "usage";
+
     public static void main(String[] args) {
 
-        Parser cliParser = new Parser(args);
-        HashMap<Parser.Option, Object> parsed = cliParser.parse();
-
-        int port = Defaults.PORT;
-        Object obj = parsed.get(Parser.Option.PORT);
-        if (obj != null) {
-            port = (int) obj;
+        if (args.length == 0) {
+            usage();
+            System.exit(1);
         }
+        args[0].toLowerCase(Locale.ROOT);
+        switch(args[0]) {
+            case "gui":
+                launch(Gui.class, args);
+                break;
+            case "cli":
+                new CLI(args).run();
+                break;
+        }
+    }
 
-        Listener listener = new Listener(port);
-        listener.run();
-
-        CLI cliInterface = new CLI();
-        cliInterface.run();
+    private static void usage() {
+        System.err.println(USAGE);
     }
 }
