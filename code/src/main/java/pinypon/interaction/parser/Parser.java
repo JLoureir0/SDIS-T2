@@ -1,7 +1,6 @@
 package pinypon.interaction.parser;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class Parser {
 
@@ -10,22 +9,17 @@ public class Parser {
     static final private String USER_JSON_PATH_LONG = "--user-json";
     static final private String USER_JSON_PATH_SHORT = "-uj";
 
-    final private String []args;
+    final private String[] args;
     private HashMap<Option, Object> parsed = new HashMap<>();
 
-    public enum Option {
-        PORT,
-        USER_JSON_PATH
-    }
-
-    public Parser(String []args) {
+    public Parser(String[] args) {
         this.args = args;
     }
 
     public HashMap<Option, Object> parse() {
         int args_length = this.args.length;
         for (int index = 1; index < args_length; ++index) {
-            switch(this.args[index]) {
+            switch (this.args[index]) {
                 case PORT_LONG:
                 case PORT_SHORT:
                     if ((index = index + 1) >= args_length) {
@@ -49,5 +43,10 @@ public class Parser {
             }
         }
         return this.parsed;
+    }
+
+    public enum Option {
+        PORT,
+        USER_JSON_PATH
     }
 }

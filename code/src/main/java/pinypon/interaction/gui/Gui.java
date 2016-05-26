@@ -40,21 +40,8 @@ public class Gui extends Application {
     private Scene restoreUserScene;
 
     private Scene createUserScene;
-    private static class CreateUserFields {
-        public final TextField usernameField;
-        public final PasswordField passwordField;
-        public final TextField jsonPathField;
-
-        public CreateUserFields(TextField usernameField, PasswordField passwordField, TextField jsonPathField) {
-            this.usernameField = usernameField;
-            this.passwordField = passwordField;
-            this.jsonPathField = jsonPathField;
-        }
-    }
     private Button loadProfileButton;
-
     private Scene chatScene;
-
     private User user;
     private int port;
     private String userJsonPath;
@@ -92,7 +79,7 @@ public class Gui extends Application {
 
         File file = new File(this.userJsonPath);
 
-        if(file.exists() && !file.isDirectory()) {
+        if (file.exists() && !file.isDirectory()) {
             stage.setScene(this.restoreUserScene);
         } else {
             stage.setScene(this.registerLoadScene);
@@ -274,5 +261,17 @@ public class Gui extends Application {
         alert.setX(this.stage.getX() + this.stage.getWidth() / 2 - alert.getWidth() / 2);
         alert.setY(this.stage.getY() + this.stage.getHeight() / 2 - alert.getHeight() / 2);
         alert.showAndWait();
+    }
+
+    private static class CreateUserFields {
+        public final TextField usernameField;
+        public final PasswordField passwordField;
+        public final TextField jsonPathField;
+
+        public CreateUserFields(TextField usernameField, PasswordField passwordField, TextField jsonPathField) {
+            this.usernameField = usernameField;
+            this.passwordField = passwordField;
+            this.jsonPathField = jsonPathField;
+        }
     }
 }

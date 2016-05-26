@@ -23,7 +23,7 @@ final public class Listener implements Runnable {
 
     public void run() {
         while (true) {
-            DatagramPacket packet =  new DatagramPacket(packetBuffer, packetBuffer.length);
+            DatagramPacket packet = new DatagramPacket(packetBuffer, packetBuffer.length);
             try {
                 this.socket.receive(packet);
                 this.handler.put(packet);

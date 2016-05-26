@@ -25,7 +25,7 @@ public class ReadFile {
         byte[] bytes = null;
         try {
             File file = new File(path);
-             fileInputStream = new FileInputStream(file);
+            fileInputStream = new FileInputStream(file);
             bytes = new byte[(int) file.length()];
             fileInputStream.read(bytes);
         } finally {

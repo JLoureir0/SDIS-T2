@@ -15,7 +15,7 @@ public class Pinypon {
             System.exit(1);
         }
         args[0].toLowerCase(Locale.ROOT);
-        switch(args[0]) {
+        switch (args[0]) {
             case "gui":
                 launch(Gui.class, args);
                 break;

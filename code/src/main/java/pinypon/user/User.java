@@ -9,12 +9,12 @@ import pinypon.utils.ReadFile;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 import java.util.HashSet;
 
 public final class User extends Entity {
@@ -36,16 +36,22 @@ public final class User extends Entity {
         this.jsonPath = jsonPath;
     }
 
+    public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+        byte[] encryptedString = ReadFile.FileInputStreamBytes(path);
+        String decryptedString = SymmetricEncryption.decrypt(encryptedString, password);
+        return Defaults.gson.fromJson(decryptedString, User.class);
+    }
+
     public String getJsonPath() {
         return jsonPath;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public void setJsonPath(String jsonPath) {
         this.jsonPath = jsonPath;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public boolean addFriend(Friend friend) {
@@ -90,11 +96,5 @@ public final class User extends Entity {
         }
 
         return true;
-    }
-
-    public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
-        byte[] encryptedString = ReadFile.FileInputStreamBytes(path);
-        String decryptedString = SymmetricEncryption.decrypt(encryptedString, password);
-        return Defaults.gson.fromJson(decryptedString, User.class);
     }
 }

@@ -10,7 +10,6 @@ import pinypon.utils.Defaults;
 public class CreateNouce {
 
 
-
     public byte[] createNouce() {
 
         Random random = new Random();

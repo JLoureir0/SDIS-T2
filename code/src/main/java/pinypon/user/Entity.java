@@ -17,12 +17,12 @@ public abstract class Entity implements Comparable<Entity> {
         return username;
     }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public PublicKey getPublicKey() {
+        return publicKey;
     }
 
     @Override

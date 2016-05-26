@@ -6,7 +6,6 @@ import pinypon.utils.Defaults;
 
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
-import java.util.IllegalFormatException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Handler implements Runnable {
