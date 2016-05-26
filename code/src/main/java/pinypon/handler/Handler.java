@@ -10,6 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Handler implements Runnable {
 
+    private boolean kill = false;
     final private LinkedBlockingQueue<DatagramPacket> queuedRequests;
 
     public Handler() {
@@ -17,13 +18,13 @@ final public class Handler implements Runnable {
     }
 
     public void run() {
-        while (true) {
-            try {
-                DatagramPacket packet = this.queuedRequests.take();
-                this.handlePacket(packet);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        try {
+            while (!kill) {
+                    DatagramPacket packet = this.queuedRequests.take();
+                    this.handlePacket(packet);
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -53,5 +54,10 @@ final public class Handler implements Runnable {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    public void kill() {
+        kill = true;
+        Thread.currentThread().interrupt();
     }
 }

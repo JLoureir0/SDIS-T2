@@ -1,6 +1,7 @@
 package pinypon.interaction.gui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -86,13 +87,21 @@ public class Gui extends Application {
         }
         stage.show();
 
-        Listener listener = null;
         try {
-            listener = new Listener(port);
+        final Listener listener = new Listener(port);
+
+        final Thread listenerThread = new Thread(listener);
+        listenerThread.start();
+
+        this.stage.setOnCloseRequest(windowEvent -> {
+            listenerThread.interrupt();
+            this.stage.close();
+            Platform.exit();
+        });
+
         } catch (SocketException e) {
             e.printStackTrace();
         }
-        new Thread(listener).start();
     }
 
     private void restoreUserScene() {
@@ -213,7 +222,7 @@ public class Gui extends Application {
     }
 
     private void chatScene() {
-        this.chatScene = new Scene();
+//        this.chatScene = new Scene();
     }
 
     private void createUser(CreateUserFields fields) {
