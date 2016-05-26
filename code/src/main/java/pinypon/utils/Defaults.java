@@ -15,5 +15,5 @@ public class Defaults {
     public static final String PROTOCOL_CHAT_FILE = "FILE";
 
     public static final Gson gson = new Gson();
-    public static final String USER_JSON_PATH = "user.json";
+    public static final String USER_JSON_PATH = "user.secret";
 }

@@ -1,31 +1,39 @@
 package pinypon.user;
 
+import org.abstractj.kalium.keys.KeyPair;
 import org.abstractj.kalium.keys.PrivateKey;
-import org.abstractj.kalium.keys.PublicKey;
+import pinypon.encryption.SymmetricEncryption;
 import pinypon.utils.Defaults;
+import pinypon.utils.ReadFile;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.HashSet;
 
-public class User extends Entity {
+public final class User extends Entity {
 
     private String password;
     private PrivateKey privateKey;
     private HashSet<Friend> friends;
     private String jsonPath;
 
-    public User(String username, String password, String jsonPath, PublicKey publicKey, PrivateKey privateKey) {
-        super(username, publicKey);
-        if (password.isEmpty() || jsonPath.isEmpty() || privateKey == null) {
+    public User(String username, String password, String jsonPath) {
+        super(username);
+        if (password.isEmpty() || jsonPath.isEmpty()) {
             throw new IllegalArgumentException("Fields cannot be empty.");
         }
+        KeyPair keyPair = new KeyPair();
+        this.publicKey = keyPair.getPublicKey();
+        this.privateKey = keyPair.getPrivateKey();
         this.password = password;
         this.jsonPath = jsonPath;
-        this.privateKey = privateKey;
-    }
-
-    public PrivateKey getPrivateKey() {
-        return privateKey;
     }
 
     public String getJsonPath() {
@@ -34,10 +42,6 @@ public class User extends Entity {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public void setPrivateKey(PrivateKey privateKey) {
-        this.privateKey = privateKey;
     }
 
     public void setJsonPath(String jsonPath) {
@@ -60,18 +64,37 @@ public class User extends Entity {
         if (json.isEmpty()) {
             return false;
         }
+
+        byte[] encryptedJson = null;
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(this.jsonPath));
-            writer.write(json);
-            writer.close();
-        } catch (IOException e) {
+            encryptedJson = SymmetricEncryption.encrypt(json, this.password);
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(this.jsonPath, false);
+            fileOutputStream.write(encryptedJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         return true;
     }
 
-    public static User restore(String path) throws FileNotFoundException {
-        return Defaults.gson.fromJson(new FileReader(path), User.class);
+    public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+        byte[] encryptedString = ReadFile.FileInputStreamBytes(path);
+        String decryptedString = SymmetricEncryption.decrypt(encryptedString, password);
+        return Defaults.gson.fromJson(decryptedString, User.class);
     }
 }
