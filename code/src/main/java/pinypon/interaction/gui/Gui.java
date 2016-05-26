@@ -38,10 +38,10 @@ public class Gui extends Application {
     private Stage stage;
     private Scene registerLoadScene;
     private Scene restoreUserScene;
-
-    private Scene createUserScene;
-    private Button loadProfileButton;
     private Scene chatScene;
+    private Scene createUserScene;
+
+    private Button loadProfileButton;
     private User user;
     private int port;
     private String userJsonPath;
@@ -67,7 +67,7 @@ public class Gui extends Application {
         }
         restoreUserScene();
         registerLoadScene();
-        this.chatScene = this.registerLoadScene;
+        chatScene();
     }
 
     @Override
@@ -110,8 +110,35 @@ public class Gui extends Application {
 
         Button registerLoadButton = new Button("register");
         registerLoadButton.setOnAction(actionEvent -> this.stage.setScene(registerLoadScene));
+        Button loginButton = new Button("login");
+        loginButton.setOnAction(actionEvent -> {
+            try {
+                this.user = User.restore(this.userJsonPath, passwordField.getText());
+                this.stage.setScene(chatScene);
+            } catch (FileNotFoundException e) {
+                simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                simpleAlert(Alert.AlertType.ERROR, "User", "Bad Password", "Please insert a valid password");
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            }
+        });
         HBox hbox = new HBox(10);
         hbox.setAlignment(Pos.BOTTOM_RIGHT);
+        hbox.getChildren().add(loginButton);
         hbox.getChildren().add(registerLoadButton);
         grid.add(hbox, 1, 3);
 
@@ -185,6 +212,10 @@ public class Gui extends Application {
         this.createUserScene = new Scene(grid);
     }
 
+    private void chatScene() {
+        this.chatScene = new Scene();
+    }
+
     private void createUser(CreateUserFields fields) {
         try {
             this.user = new User(fields.usernameField.getText(), fields.passwordField.getText(), fields.jsonPathField.getText());
@@ -216,6 +247,7 @@ public class Gui extends Application {
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             } catch (BadPaddingException e) {
+                simpleAlert(Alert.AlertType.ERROR, "User", "Bad Password", "Please insert a valid password");
                 e.printStackTrace();
             } catch (InvalidKeyException e) {
                 e.printStackTrace();

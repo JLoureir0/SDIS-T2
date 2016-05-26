@@ -26,14 +26,17 @@ public final class User extends Entity {
 
     public User(String username, String password, String jsonPath) {
         super(username);
-        if (password.isEmpty() || jsonPath.isEmpty()) {
-            throw new IllegalArgumentException("Fields cannot be empty.");
+        if (password.isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty.");
         }
         KeyPair keyPair = new KeyPair();
         this.publicKey = keyPair.getPublicKey();
         this.privateKey = keyPair.getPrivateKey();
         this.password = password;
         this.jsonPath = jsonPath;
+        if (jsonPath.isEmpty()) {
+            this.jsonPath = Defaults.USER_JSON_PATH;
+        }
     }
 
     public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {

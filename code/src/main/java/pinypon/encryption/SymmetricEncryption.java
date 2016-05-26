@@ -12,7 +12,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 
 public class SymmetricEncryption {
-
     private static final int KEY_SIZE = 256;
     private static final int SALT_SIZE = KEY_SIZE / 16;
     private static final int IV_SIZE = 128 / 8;
