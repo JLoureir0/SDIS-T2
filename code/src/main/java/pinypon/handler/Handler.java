@@ -8,10 +8,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.util.concurrent.LinkedBlockingQueue;
 
-final public class Handler implements Runnable {
+final public class Handler extends Thread {
 
-    private boolean kill = false;
     final private LinkedBlockingQueue<DatagramPacket> queuedRequests;
+    private boolean interrupted = false;
 
     public Handler() {
         this.queuedRequests = new LinkedBlockingQueue<>();
@@ -19,9 +19,12 @@ final public class Handler implements Runnable {
 
     public void run() {
         try {
-            while (!kill) {
-                    DatagramPacket packet = this.queuedRequests.take();
-                    this.handlePacket(packet);
+            while (!interrupted) {
+                DatagramPacket packet = this.queuedRequests.take();
+                if (packet == null) {
+                    throw new InterruptedException();
+                }
+                this.handlePacket(packet);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -57,7 +60,7 @@ final public class Handler implements Runnable {
     }
 
     public void kill() {
-        kill = true;
-        Thread.currentThread().interrupt();
+        interrupted = true;
+        super.interrupt();
     }
 }

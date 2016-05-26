@@ -88,16 +88,22 @@ public class Gui extends Application {
         stage.show();
 
         try {
-        final Listener listener = new Listener(port);
+            final Listener listener = new Listener(port);
 
-        final Thread listenerThread = new Thread(listener);
-        listenerThread.start();
+            final Thread listenerThread = new Thread(listener);
+            listenerThread.start();
 
-        this.stage.setOnCloseRequest(windowEvent -> {
-            listenerThread.interrupt();
-            this.stage.close();
-            Platform.exit();
-        });
+            this.stage.setOnCloseRequest(windowEvent -> {
+                try {
+                    Platform.exit();
+                    listener.interrupt();
+                    listenerThread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    System.exit(0);
+                }
+            });
 
         } catch (SocketException e) {
             e.printStackTrace();

@@ -8,13 +8,13 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-final public class Listener implements Runnable {
+final public class Listener extends Thread {
 
     private final DatagramSocket socket;
     private final Handler handler;
     private final byte[] packetBuffer;
     private final Thread handlerThread;
-    private boolean kill = false;
+    private boolean interrupted = false;
 
     public Listener(int port) throws SocketException {
         this.socket = new DatagramSocket(port);
@@ -26,7 +26,7 @@ final public class Listener implements Runnable {
 
     public void run() {
         try {
-            while (!kill) {
+            while (!interrupted) {
                 DatagramPacket packet = new DatagramPacket(packetBuffer, packetBuffer.length);
                 this.socket.receive(packet);
                 this.handler.put(packet);
@@ -36,12 +36,17 @@ final public class Listener implements Runnable {
         }
     }
 
-    public void kill() {
-        kill = true;
-        Thread.currentThread().interrupt();
-        this.socket.disconnect();
+    public void interrupt() {
+        interrupted = true;
+        super.interrupt();
         this.socket.close();
-        this.handler.kill();
+        this.handler.put(null);
+        this.handler.interrupt();
+        try {
+            this.handlerThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
 

@@ -8,7 +8,7 @@ import static javafx.application.Application.launch;
 public class Pinypon {
     private static final String USAGE = "usage";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
             usage();
