@@ -47,6 +47,7 @@ public class Gui extends Application {
     private Scene chatScene;
     private Scene createUserScene;
 
+    private TextArea activeFriendTextArea;
     private ListView<Friend> friendsListView;
     private HashMap<Friend, TextArea> friendsTextAreas = new HashMap<>();
 
@@ -254,9 +255,10 @@ public class Gui extends Application {
 
     private void chatScene() {
         this.friendsListView = new ListView<>();
+        this.friendsListView.setEditable(false);
         this.friendsListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         this.chatBorderPane = new BorderPane();
-        this.chatBorderPane.setLeft(friendsListView);
+        this.chatBorderPane.setRight(friendsListView);
         this.chatScene = new Scene(chatBorderPane);
     }
 
@@ -273,20 +275,42 @@ public class Gui extends Application {
                     gotFirst = true;
                 }
                 this.friendsListView.getItems().add(friend);
-                this.friendsTextAreas.putIfAbsent(friend, createChatTextArea(friend.toString()));
+                this.friendsTextAreas.putIfAbsent(friend, createChatTextArea());
             }
         }
         friendsListView.getSelectionModel().selectedItemProperty().addListener((observable, OldFriend, newFriend) -> {
-            this.chatBorderPane.setCenter(this.friendsTextAreas.get(newFriend));
+            TextArea friendTextArea = this.friendsTextAreas.get(newFriend);
+            this.activeFriendTextArea = friendTextArea;
+            this.chatBorderPane.setCenter(friendTextArea);
         });
         if (firstFriend != null) {
-            this.chatBorderPane.setCenter(this.friendsTextAreas.get(firstFriend));
+            TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend);
+            this.friendsListView.getSelectionModel().select(firstFriend);
+            this.activeFriendTextArea = firstFriendTextArea;
+            this.chatBorderPane.setCenter(firstFriendTextArea);
         }
+
+        // TEST
+        this.writeToTextArea(firstFriend, "Ola");
+        // END TEST
+
+        TextField messageField = new TextField();
+        messageField.setOnAction(actionEvent -> messageHandler(messageField));
+
+        this.chatBorderPane.setBottom(messageField);
         this.stage.setScene(chatScene);
     }
 
-    private TextArea createChatTextArea(String username) {
-        TextArea textArea = new TextArea(username);
+    private void messageHandler(TextField messageField) {
+        String message = new String(messageField.getText());
+        this.activeFriendTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
+        messageField.clear();
+        // TODO
+        // Send this message to the other guy call some class
+    }
+
+    private TextArea createChatTextArea() {
+        TextArea textArea = new TextArea();
         textArea.setEditable(false);
         return textArea;
     }
@@ -378,5 +402,13 @@ public class Gui extends Application {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
         }
+    }
+
+    public void writeToTextArea(Friend friend, String message) {
+        TextArea friendTextArea = this.friendsTextAreas.get(friend);
+        if (friendTextArea == null) {
+            return;
+        }
+        friendTextArea.appendText(friend + ": " + message + "\n");
     }
 }
