@@ -1,6 +1,5 @@
 package pinypon.user;
 
-import org.abstractj.kalium.keys.Key;
 import org.abstractj.kalium.keys.KeyPair;
 import org.abstractj.kalium.keys.PrivateKey;
 import pinypon.encryption.SymmetricEncryption;

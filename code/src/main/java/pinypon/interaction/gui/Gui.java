@@ -6,7 +6,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -394,6 +393,14 @@ public class Gui extends Application {
         alert.showAndWait();
     }
 
+    public void writeToTextArea(Friend friend, String message) {
+        TextArea friendTextArea = this.friendsTextAreas.get(friend);
+        if (friendTextArea == null) {
+            return;
+        }
+        friendTextArea.appendText(friend + ": " + message + "\n");
+    }
+
     private static class CreateUserFields {
         public final TextField usernameField;
         public final PasswordField passwordField;
@@ -402,13 +409,5 @@ public class Gui extends Application {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
         }
-    }
-
-    public void writeToTextArea(Friend friend, String message) {
-        TextArea friendTextArea = this.friendsTextAreas.get(friend);
-        if (friendTextArea == null) {
-            return;
-        }
-        friendTextArea.appendText(friend + ": " + message + "\n");
     }
 }
