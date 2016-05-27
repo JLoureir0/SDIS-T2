@@ -21,7 +21,7 @@ public final class User extends Entity {
 
     private String password;
     private PrivateKey privateKey;
-    private HashSet<Friend> friends;
+    private HashSet<Friend> friends = new HashSet<>();
     private String jsonPath;
 
     public User(String username, String password, String jsonPath) {
@@ -55,6 +55,10 @@ public final class User extends Entity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public HashSet<Friend> getFriends() {
+        return this.friends;
     }
 
     public boolean addFriend(Friend friend) {

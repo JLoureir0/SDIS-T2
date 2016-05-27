@@ -6,6 +6,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -17,6 +19,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.Listener;
+import pinypon.user.Friend;
 import pinypon.user.User;
 import pinypon.utils.Defaults;
 
@@ -32,6 +35,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class Gui extends Application {
@@ -41,6 +46,8 @@ public class Gui extends Application {
     private Scene restoreUserScene;
     private Scene chatScene;
     private Scene createUserScene;
+
+    private ListView<String> friendsListView;
 
     private Button loadProfileButton;
     private User user;
@@ -95,6 +102,9 @@ public class Gui extends Application {
 
             this.stage.setOnCloseRequest(windowEvent -> {
                 try {
+                    if (this.user != null) {
+                        this.user.store();
+                    }
                     Platform.exit();
                     listener.interrupt();
                     listenerThread.join();
@@ -121,36 +131,13 @@ public class Gui extends Application {
         grid.add(passwordLabel, 0, 1);
 
         PasswordField passwordField = new PasswordField();
+        passwordField.setOnAction(actionEvent -> login(passwordField));
         grid.add(passwordField, 1, 1);
 
         Button registerLoadButton = new Button("register");
         registerLoadButton.setOnAction(actionEvent -> this.stage.setScene(registerLoadScene));
         Button loginButton = new Button("login");
-        loginButton.setOnAction(actionEvent -> {
-            try {
-                this.user = User.restore(this.userJsonPath, passwordField.getText());
-                this.stage.setScene(chatScene);
-            } catch (FileNotFoundException e) {
-                simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (BadPaddingException e) {
-                simpleAlert(Alert.AlertType.ERROR, "User", "Bad Password", "Please insert a valid password");
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            } catch (InvalidAlgorithmParameterException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (IllegalBlockSizeException e) {
-                e.printStackTrace();
-            }
-        });
+        loginButton.setOnAction(actionEvent -> login(passwordField));
         HBox hbox = new HBox(10);
         hbox.setAlignment(Pos.BOTTOM_RIGHT);
         hbox.getChildren().add(loginButton);
@@ -158,6 +145,32 @@ public class Gui extends Application {
         grid.add(hbox, 1, 3);
 
         this.restoreUserScene = new Scene(grid);
+    }
+
+    private void login(PasswordField passwordField) {
+        try {
+            this.user = User.restore(this.userJsonPath, passwordField.getText());
+            chatSetup();
+        } catch (FileNotFoundException e) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad Password", "Please insert a valid password");
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
     }
 
     private void registerLoadScene() {
@@ -208,14 +221,24 @@ public class Gui extends Application {
         PasswordField passwordField = new PasswordField();
         grid.add(passwordField, 1, 2);
 
-        Label jsonPathLabel = new Label("saveProfileTo:");
+        Label jsonPathLabel = new Label("Save profile to:");
         grid.add(jsonPathLabel, 0, 3);
-
-        TextField jsonPathField = new TextField();
-        grid.add(jsonPathField, 1, 3);
+        Button jsonPathButton = new Button(this.userJsonPath);
+        jsonPathButton.setOnAction(actionEvent -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("All Files", "*"),
+                    new FileChooser.ExtensionFilter("User file", "*.secret")
+            );
+            File file = fileChooser.showOpenDialog(this.stage);
+            if (file != null) {
+                this.userJsonPath = file.getAbsolutePath();
+            }
+        });
+        grid.add(jsonPathButton, 1, 3);
 
         Button createUserButton = new Button("create");
-        createUserButton.setOnAction(actionEvent -> createUser(new CreateUserFields(usernameField, passwordField, jsonPathField)));
+        createUserButton.setOnAction(actionEvent -> createUser(new CreateUserFields(usernameField, passwordField)));
         Button registerLoadButton = new Button("Go to main page");
         registerLoadButton.setOnAction(actionEvent -> this.stage.setScene(this.registerLoadScene));
         HBox hbox = new HBox(10);
@@ -228,16 +251,32 @@ public class Gui extends Application {
     }
 
     private void chatScene() {
-//        this.chatScene = new Scene();
+        this.friendsListView = new ListView<>();
+        BorderPane borderPane = new BorderPane();
+        borderPane.setLeft(friendsListView);
+        this.chatScene = new Scene(borderPane);
+    }
+
+    private void chatSetup() {
+        HashSet<Friend> friends = this.user.getFriends();
+        if (friends != null) {
+            Iterator<Friend> friendIterator = friends.iterator();
+            while (friendIterator.hasNext()) {
+                Friend friend = friendIterator.next();
+                this.friendsListView.getItems().add(friend.getUsername());
+                this.friendsListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+            }
+        }
+        this.stage.setScene(chatScene);
     }
 
     private void createUser(CreateUserFields fields) {
         try {
-            this.user = new User(fields.usernameField.getText(), fields.passwordField.getText(), fields.jsonPathField.getText());
+            this.user = new User(fields.usernameField.getText(), fields.passwordField.getText(), this.userJsonPath);
             if (!this.user.store()) {
                 simpleAlert(Alert.AlertType.ERROR, "User", "Store", "Failed to store user data");
             }
-            this.stage.setScene(chatScene);
+            chatSetup();
         } catch (IllegalArgumentException e) {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
         }
@@ -247,14 +286,14 @@ public class Gui extends Application {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("All Files", "*"),
-                new FileChooser.ExtensionFilter("json", "*.secret")
+                new FileChooser.ExtensionFilter("User file", "*.secret")
         );
         File file = fileChooser.showOpenDialog(this.stage);
         if (file != null) {
             try {
                 String password = getPasswordModalStage();
                 this.user = User.restore(file.getAbsolutePath(), password);
-                this.stage.setScene(chatScene);
+                chatSetup();
             } catch (FileNotFoundException e) {
                 simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
             } catch (InvalidKeySpecException e) {
@@ -313,12 +352,10 @@ public class Gui extends Application {
     private static class CreateUserFields {
         public final TextField usernameField;
         public final PasswordField passwordField;
-        public final TextField jsonPathField;
 
-        public CreateUserFields(TextField usernameField, PasswordField passwordField, TextField jsonPathField) {
+        public CreateUserFields(TextField usernameField, PasswordField passwordField) {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
-            this.jsonPathField = jsonPathField;
         }
     }
 }
