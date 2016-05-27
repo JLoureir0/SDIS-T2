@@ -19,4 +19,13 @@ public final class Friend extends Entity {
     public void setAlias(String alias) {
         this.alias = alias;
     }
+
+    @Override
+    public String toString() {
+        if (this.alias == null) {
+            return this.username;
+        } else {
+            return this.alias;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package pinypon.user;
 
+import org.abstractj.kalium.keys.Key;
 import org.abstractj.kalium.keys.KeyPair;
 import org.abstractj.kalium.keys.PrivateKey;
 import pinypon.encryption.SymmetricEncryption;
@@ -37,6 +38,13 @@ public final class User extends Entity {
         if (jsonPath.isEmpty()) {
             this.jsonPath = Defaults.USER_JSON_PATH;
         }
+
+        // Test stuff
+        friends.add(new Friend("friend1", new KeyPair().getPublicKey()));
+        friends.add(new Friend("friend2", new KeyPair().getPublicKey()));
+        friends.add(new Friend("friend3", new KeyPair().getPublicKey()));
+        friends.add(new Friend("friend4", new KeyPair().getPublicKey()));
+        friends.add(new Friend("friend5", new KeyPair().getPublicKey()));
     }
 
     public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {

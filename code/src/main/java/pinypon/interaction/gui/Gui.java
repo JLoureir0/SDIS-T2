@@ -47,8 +47,10 @@ public class Gui extends Application {
     private Scene chatScene;
     private Scene createUserScene;
 
-    private ListView<String> friendsListView;
+    private ListView<Friend> friendsListView;
+    private HashMap<Friend, TextArea> friendsTextAreas = new HashMap<>();
 
+    private BorderPane chatBorderPane;
     private Button loadProfileButton;
     private User user;
     private int port;
@@ -252,22 +254,41 @@ public class Gui extends Application {
 
     private void chatScene() {
         this.friendsListView = new ListView<>();
-        BorderPane borderPane = new BorderPane();
-        borderPane.setLeft(friendsListView);
-        this.chatScene = new Scene(borderPane);
+        this.friendsListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        this.chatBorderPane = new BorderPane();
+        this.chatBorderPane.setLeft(friendsListView);
+        this.chatScene = new Scene(chatBorderPane);
     }
 
     private void chatSetup() {
         HashSet<Friend> friends = this.user.getFriends();
+        boolean gotFirst = false;
+        Friend firstFriend = null;
         if (friends != null) {
             Iterator<Friend> friendIterator = friends.iterator();
             while (friendIterator.hasNext()) {
                 Friend friend = friendIterator.next();
-                this.friendsListView.getItems().add(friend.getUsername());
-                this.friendsListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+                if (!gotFirst) {
+                    firstFriend = friend;
+                    gotFirst = true;
+                }
+                this.friendsListView.getItems().add(friend);
+                this.friendsTextAreas.putIfAbsent(friend, createChatTextArea(friend.toString()));
             }
         }
+        friendsListView.getSelectionModel().selectedItemProperty().addListener((observable, OldFriend, newFriend) -> {
+            this.chatBorderPane.setCenter(this.friendsTextAreas.get(newFriend));
+        });
+        if (firstFriend != null) {
+            this.chatBorderPane.setCenter(this.friendsTextAreas.get(firstFriend));
+        }
         this.stage.setScene(chatScene);
+    }
+
+    private TextArea createChatTextArea(String username) {
+        TextArea textArea = new TextArea(username);
+        textArea.setEditable(false);
+        return textArea;
     }
 
     private void createUser(CreateUserFields fields) {
