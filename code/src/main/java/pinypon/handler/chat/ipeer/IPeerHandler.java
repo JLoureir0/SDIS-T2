@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 final public class IPeerHandler implements ListeningThread {
 
-    final private HashMap<Integer, Protocol> connections;
+    final private HashMap<String, Protocol> connections;
 
     private boolean interrupted = false;
 
@@ -22,7 +22,7 @@ final public class IPeerHandler implements ListeningThread {
     }
 
     public boolean sendMessage(User user, Friend friend, String message) throws IOException, InterruptedException {
-        Protocol protocol = connections.get(friend.hashCode());
+        Protocol protocol = connections.get(friend.getEncodedPublicKey());
         if (protocol == null) {
             // TODO
             // public key, call a dht function that returns an ipaddress and a port of the listening peer
@@ -31,7 +31,7 @@ final public class IPeerHandler implements ListeningThread {
             InetAddress ipAddress = InetAddress.getByName(ipAddressString);
             // return false if is offline
             protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
-            connections.put(friend.hashCode(), protocol);
+            connections.put(friend.getEncodedPublicKey(), protocol);
             protocol.start();
         }
         protocol.add(message);
