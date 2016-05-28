@@ -13,9 +13,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Protocol extends NotifyingThread {
     private final LinkedBlockingQueue<String> messagesToSend;
     private final ChatConnection chatConnection;
-    private boolean interrupted = false;
     private final User user;
     private final Friend friend;
+    private boolean interrupted = false;
 
     public Protocol(User user, Friend friend, ChatConnection chatConnection) {
         this.user = user;
@@ -25,15 +25,6 @@ public class Protocol extends NotifyingThread {
         }
         this.chatConnection = chatConnection;
         this.messagesToSend = new LinkedBlockingQueue<>();
-    }
-
-    public ChatConnection getChatConnection() {
-        return chatConnection;
-    }
-
-    @Override
-    protected void notifyListener() {
-        this.listeningThread.notifyThreadComplete(this);
     }
 
     @Override
@@ -59,7 +50,18 @@ public class Protocol extends NotifyingThread {
         this.messagesToSend.put(message);
     }
 
+    public ChatConnection getChatConnection() {
+        return chatConnection;
+    }
+
+    @Override
+    protected void notifyListener() {
+        this.listeningThread.notifyThreadComplete(this);
+    }
+
     public void kill() {
         this.interrupted = true;
+        super.interrupt();
+        messagesToSend.add(null);
     }
 }

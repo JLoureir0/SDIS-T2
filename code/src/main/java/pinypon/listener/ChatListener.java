@@ -11,24 +11,24 @@ import java.net.SocketException;
 final public class ChatListener extends Thread {
 
     private final ServerSocket serverSocket;
-    private final PeerHandler chatHandler;
-    private boolean interrupted = false;
+    private final PeerHandler peerHandler;
+    private boolean kill = false;
 
     public ChatListener(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
-        this.chatHandler = new PeerHandler();
-        this.chatHandler.start();
+        this.peerHandler = new PeerHandler();
+        this.peerHandler.start();
     }
 
-    public PeerHandler getChatHandler() {
-        return chatHandler;
+    public PeerHandler getPeerHandler() {
+        return peerHandler;
     }
 
     public void run() {
         try {
-            while (!interrupted) {
+            while (!kill) {
                 Socket socket = this.serverSocket.accept();
-                this.chatHandler.put(new ChatConnection(socket));
+                this.peerHandler.put(new ChatConnection(socket));
             }
         } catch (SocketException e) {
             e.printStackTrace();
@@ -37,18 +37,17 @@ final public class ChatListener extends Thread {
         }
     }
 
-    public void interrupt() {
-        interrupted = true;
+    public void kill() {
+        kill = true;
         super.interrupt();
         try {
             this.serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.chatHandler.put(null);
-        this.chatHandler.interrupt();
+        this.peerHandler.kill();
         try {
-            this.chatHandler.join();
+            this.peerHandler.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

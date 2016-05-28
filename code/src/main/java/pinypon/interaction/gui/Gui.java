@@ -16,7 +16,6 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.abstractj.kalium.encoders.Hex;
 import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.interaction.parser.Parser;
@@ -49,30 +48,10 @@ public class Gui extends Application {
     private Scene restoreUserScene;
     private Scene chatScene;
     private Scene createUserScene;
-
-    private static class ActiveFriendTextArea {
-        private TextArea textArea;
-        private Friend friend;
-
-        public void set(TextArea textArea, Friend friend) {
-            this.textArea = textArea;
-            this.friend = friend;
-        }
-
-        public Friend getFriend() {
-            return friend;
-        }
-
-        public TextArea getTextArea() {
-            return textArea;
-        }
-    }
-
     private ActiveFriendTextArea activeFriendTextArea = new ActiveFriendTextArea();
     private ListView<Friend> friendsListView;
     private HashMap<String, TextArea> friendsTextAreas = new HashMap<>();
     private IPeerHandler iPeerHandler;
-
     private TextField messageField;
     private BorderPane chatBorderPane;
     private Button loadProfileButton;
@@ -123,9 +102,10 @@ public class Gui extends Application {
         stage.show();
 
         try {
-            final ChatListener chatListener = new ChatListener(port);
-            final MessageGuiWriter messageGuiWriter = new MessageGuiWriter(this, chatListener.getChatHandler().getMessagesToPrint());
+            final ChatListener chatListener = new ChatListener(this.port);
+            final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
             chatListener.start();
+            guiMessagePrinter.start();
 
             this.stage.setOnCloseRequest(windowEvent -> {
                 try {
@@ -133,9 +113,10 @@ public class Gui extends Application {
                         this.user.store();
                     }
                     Platform.exit();
-                    chatListener.interrupt();
-                    messageGuiWriter.interrupt();
-                    messageGuiWriter.join();
+                    chatListener.kill();
+                    guiMessagePrinter.kill();
+                    this.iPeerHandler.kill();
+                    guiMessagePrinter.join();
                     chatListener.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -342,7 +323,7 @@ public class Gui extends Application {
 
         String message = new String(messageField.getText());
         if (message.charAt(0) == '/') {
-            String[] filteredMessage= message.split(Defaults.WHITESPACE_REGEX);
+            String[] filteredMessage = message.split(Defaults.WHITESPACE_REGEX);
             switch (filteredMessage[0]) {
                 case "/add":
                     if (filteredMessage.length != 3) {
@@ -511,6 +492,24 @@ public class Gui extends Application {
         }
         Friend friend = this.user.getFriend(encodedPublicKey);
         friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
+    }
+
+    private static class ActiveFriendTextArea {
+        private TextArea textArea;
+        private Friend friend;
+
+        public void set(TextArea textArea, Friend friend) {
+            this.textArea = textArea;
+            this.friend = friend;
+        }
+
+        public Friend getFriend() {
+            return friend;
+        }
+
+        public TextArea getTextArea() {
+            return textArea;
+        }
     }
 
     private static class CreateUserFields {

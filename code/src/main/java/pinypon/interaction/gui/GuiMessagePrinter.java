@@ -4,12 +4,12 @@ import pinypon.protocol.chat.Message;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class MessageGuiWriter extends Thread {
+public class GuiMessagePrinter extends Thread {
     private boolean kill = false;
     private LinkedBlockingQueue<Message> messagesToPrint;
     private Gui gui;
 
-    public MessageGuiWriter(Gui gui, LinkedBlockingQueue messagesToPrint) {
+    public GuiMessagePrinter(Gui gui, LinkedBlockingQueue messagesToPrint) {
         this.gui = gui;
         this.messagesToPrint = messagesToPrint;
     }
@@ -17,12 +17,12 @@ public class MessageGuiWriter extends Thread {
     @Override
     public void run() {
         try {
-            while(!kill) {
+            while (!kill) {
                 Message message = messagesToPrint.take();
-                this.gui.writeToTextArea(message.getSenderPublicKey().toString(), message.getBody());
                 if (message == null) {
                     throw new InterruptedException();
                 }
+                this.gui.writeToTextArea(message.getSenderPublicKey().toString(), message.getBody());
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -31,5 +31,6 @@ public class MessageGuiWriter extends Thread {
 
     public void kill() {
         kill = true;
+        super.interrupt();
     }
 }

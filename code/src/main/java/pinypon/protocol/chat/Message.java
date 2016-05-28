@@ -1,12 +1,13 @@
 package pinypon.protocol.chat;
 
-import java.io.Serializable;
 import org.abstractj.kalium.keys.PublicKey;
+
+import java.io.Serializable;
 
 public class Message implements Serializable {
 
-    private PublicKey senderPublicKey;
     public static final int MESSAGE = 0;
+    private PublicKey senderPublicKey;
     private int type;
     private String body;
 
@@ -16,8 +17,16 @@ public class Message implements Serializable {
         this.senderPublicKey = senderPublicKey;
     }
 
+    public static int getMESSAGE() {
+        return MESSAGE;
+    }
+
     public int getType() {
         return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 
     public String getBody() {
@@ -26,14 +35,6 @@ public class Message implements Serializable {
 
     public void setBody(String body) {
         this.body = body;
-    }
-
-    public void setType(int type) {
-        this.type = type;
-    }
-
-    public static int getMESSAGE() {
-        return MESSAGE;
     }
 
     public PublicKey getSenderPublicKey() {

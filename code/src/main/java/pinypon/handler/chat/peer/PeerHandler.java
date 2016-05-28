@@ -11,17 +11,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class PeerHandler extends Thread implements ListeningThread {
 
-    final private LinkedBlockingQueue<Message> messagesToPrint;
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
+    final private LinkedBlockingQueue<Message> messagesToPrint;
     final private LinkedBlockingQueue<ChatConnection> queuedConnections;
     final private HashMap<Long, Protocol> connectionsProtocols;
     private long connections_loop_counter = CONNECTIONS_COUNTER_START;
     private boolean interrupted = false;
 
     public PeerHandler() throws IOException {
+        this.messagesToPrint = new LinkedBlockingQueue<>();
         this.queuedConnections = new LinkedBlockingQueue<>();
         this.connectionsProtocols = new HashMap<>();
-        this.messagesToPrint = new LinkedBlockingQueue<>();
     }
 
     public void run() {
@@ -34,35 +34,6 @@ final public class PeerHandler extends Thread implements ListeningThread {
         }
     }
 
-    public void put(ChatConnection chatConnection) {
-        try {
-            this.queuedConnections.put(chatConnection);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void kill() {
-        interrupted = true;
-        super.interrupt();
-        try {
-            this.messagesToPrint.put(null);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        connectionsProtocols.forEach((connectionId, protocol) -> {
-            protocol.kill();
-            try {
-                protocol.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public LinkedBlockingQueue<Message> getMessagesToPrint() {
-        return messagesToPrint;
-    }
 
     private void process_queued_connections() throws IOException, InterruptedException {
 
@@ -92,6 +63,37 @@ final public class PeerHandler extends Thread implements ListeningThread {
         } while (true);
 
         protocol.start();
+    }
+
+    public void put(ChatConnection chatConnection) {
+        try {
+            this.queuedConnections.put(chatConnection);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void kill() {
+        interrupted = true;
+        super.interrupt();
+        try {
+            this.messagesToPrint.put(null);
+            this.queuedConnections.put(null);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.connectionsProtocols.forEach((connectionId, protocol) -> {
+            protocol.kill();
+            try {
+                protocol.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public LinkedBlockingQueue<Message> getMessagesToPrint() {
+        return messagesToPrint;
     }
 
     @Override

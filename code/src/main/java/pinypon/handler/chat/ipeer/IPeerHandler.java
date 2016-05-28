@@ -13,16 +13,16 @@ import java.util.HashMap;
 
 final public class IPeerHandler implements ListeningThread {
 
-    final private HashMap<String, Protocol> connections;
+    final private HashMap<String, Protocol> establishedConnection;
 
-    private boolean interrupted = false;
+    private boolean kill = false;
 
     public IPeerHandler() throws IOException {
-        this.connections = new HashMap<>();
+        this.establishedConnection = new HashMap<>();
     }
 
     public boolean sendMessage(User user, Friend friend, String message) throws IOException, InterruptedException {
-        Protocol protocol = connections.get(friend.getEncodedPublicKey());
+        Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
         if (protocol == null) {
             // TODO
             // public key, call a dht function that returns an ipaddress and a port of the listening peer
@@ -31,7 +31,7 @@ final public class IPeerHandler implements ListeningThread {
             InetAddress ipAddress = InetAddress.getByName(ipAddressString);
             // return false if is offline
             protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
-            connections.put(friend.getEncodedPublicKey(), protocol);
+            establishedConnection.put(friend.getEncodedPublicKey(), protocol);
             protocol.start();
         }
         protocol.add(message);
@@ -39,11 +39,10 @@ final public class IPeerHandler implements ListeningThread {
     }
 
     public void kill() {
-        interrupted = true;
-        connections.forEach((connectionId, protocol) -> {
+        kill = true;
+        establishedConnection.forEach((connectionId, protocol) -> {
             try {
                 protocol.kill();
-                protocol.add(null);
                 protocol.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -57,7 +56,7 @@ final public class IPeerHandler implements ListeningThread {
             return;
         }
         Protocol protocol = (Protocol) object;
-        connections.remove(protocol.getChatConnection().getId());
+        establishedConnection.remove(protocol.getChatConnection().getId());
     }
 }
 

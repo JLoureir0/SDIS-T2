@@ -11,28 +11,29 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Protocol extends NotifyingThread {
 
+    private final ObjectInputStream objectInputStream;
+    private final ObjectOutputStream objectOutputStream;
     private final LinkedBlockingQueue<Message> messagesToPrint;
     private final ChatConnection chatConnection;
-    private boolean interrupted = false;
+    private boolean kill = false;
 
-    public Protocol(ChatConnection chatConnection, LinkedBlockingQueue<Message> messagesToPrint) {
+    public Protocol(ChatConnection chatConnection, LinkedBlockingQueue<Message> messagesToPrint) throws IOException {
         if (chatConnection == null) {
             throw new IllegalArgumentException("bad chatConnection");
         }
         this.chatConnection = chatConnection;
         this.messagesToPrint = messagesToPrint;
+
+        this.objectInputStream = new ObjectInputStream(chatConnection.socket.getInputStream());
+        this.objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
     }
 
     @Override
     public void doRun() {
-        ObjectInputStream objectInputStream = null;
-        ObjectOutputStream objectOutputStream = null;
         try {
             boolean reachedFinalState = false;
-            objectInputStream = new ObjectInputStream(chatConnection.socket.getInputStream());
-            objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
 
-            while (!reachedFinalState && !interrupted) {
+            while (!reachedFinalState && !kill) {
 
                 Object objectReceived = objectInputStream.readObject();
                 Message message;
@@ -81,6 +82,12 @@ final public class Protocol extends NotifyingThread {
     }
 
     public void kill() {
-        this.interrupted = true;
+        this.kill = true;
+        super.interrupt();
+        try {
+            chatConnection.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
