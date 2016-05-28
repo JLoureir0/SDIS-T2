@@ -1,15 +1,12 @@
 package pinypon.user;
 
-
-import org.abstractj.kalium.keys.PublicKey;
-
 public final class Friend extends Entity {
 
     private String alias;
 
-    public Friend(String username, PublicKey publicKey) {
+    public Friend(String username, String encodedPublicKey) {
         super(username);
-        this.publicKey = publicKey;
+        this.encodedPublicKey = encodedPublicKey;
     }
 
     public String getAlias() {

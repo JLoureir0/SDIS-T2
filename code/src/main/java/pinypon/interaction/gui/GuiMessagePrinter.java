@@ -22,7 +22,7 @@ public class GuiMessagePrinter extends Thread {
                 if (message == null) {
                     throw new InterruptedException();
                 }
-                this.gui.writeToTextArea(message.getSenderPublicKey().toString(), message.getBody());
+                this.gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody());
             }
         } catch (InterruptedException e) {
             e.printStackTrace();

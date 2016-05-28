@@ -16,7 +16,6 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.ChatListener;
@@ -38,8 +37,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import static org.abstractj.kalium.encoders.Encoder.HEX;
 
 public class Gui extends Application {
 
@@ -384,7 +381,7 @@ public class Gui extends Application {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "friend already added!");
             return;
         }
-        Friend friend = new Friend(username, new PublicKey(HEX.decode(encodedPublicKey)));
+        Friend friend = new Friend(username, encodedPublicKey);
         this.user.addFriend(friend);
         this.friendsListView.getItems().add(friend);
         this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), createChatTextArea());

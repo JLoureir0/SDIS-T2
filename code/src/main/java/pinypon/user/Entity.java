@@ -1,10 +1,8 @@
 package pinypon.user;
 
-import org.abstractj.kalium.keys.PublicKey;
-
 public abstract class Entity implements Comparable<Entity> {
     protected String username;
-    protected PublicKey publicKey;
+    protected String encodedPublicKey;
 
     public Entity(String username) {
         if (username.isEmpty()) {
@@ -21,17 +19,13 @@ public abstract class Entity implements Comparable<Entity> {
         this.username = username;
     }
 
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
     public String getEncodedPublicKey() {
-        return this.publicKey.toString();
+        return this.encodedPublicKey;
     }
 
     @Override
     public int compareTo(Entity entity) {
-        return this.getPublicKey().toString().compareTo(entity.getPublicKey().toString());
+        return this.encodedPublicKey.compareTo(entity.encodedPublicKey);
     }
 
     @Override
@@ -40,7 +34,7 @@ public abstract class Entity implements Comparable<Entity> {
             return false;
         }
         Entity otherEntity = (Entity) obj;
-        return this.getPublicKey().equals(otherEntity.getPublicKey());
+        return this.encodedPublicKey.equals(otherEntity.encodedPublicKey);
     }
 
     @Override

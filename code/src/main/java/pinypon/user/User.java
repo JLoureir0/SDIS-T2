@@ -1,7 +1,6 @@
 package pinypon.user;
 
 import org.abstractj.kalium.keys.KeyPair;
-import org.abstractj.kalium.keys.PrivateKey;
 import pinypon.encryption.SymmetricEncryption;
 import pinypon.utils.Defaults;
 import pinypon.utils.ReadFile;
@@ -20,7 +19,7 @@ import java.util.HashMap;
 public final class User extends Entity {
 
     private String password;
-    private PrivateKey privateKey;
+    private String encodedPrivateKey;
     private HashMap<String, Friend> friends = new HashMap<>();
     private String jsonPath;
 
@@ -30,8 +29,8 @@ public final class User extends Entity {
             throw new IllegalArgumentException("Password cannot be empty.");
         }
         KeyPair keyPair = new KeyPair();
-        this.publicKey = keyPair.getPublicKey();
-        this.privateKey = keyPair.getPrivateKey();
+        this.encodedPublicKey = keyPair.getPublicKey().toString();
+        this.encodedPrivateKey = keyPair.getPrivateKey().toString();
         this.password = password;
         this.jsonPath = jsonPath;
         if (jsonPath.isEmpty()) {

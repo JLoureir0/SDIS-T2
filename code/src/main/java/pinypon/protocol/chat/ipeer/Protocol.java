@@ -36,7 +36,7 @@ public class Protocol extends NotifyingThread {
                 if (messageString == null) {
                     throw new InterruptedException();
                 }
-                Message message = new Message(Message.MESSAGE, messageString, user.getPublicKey());
+                Message message = new Message(Message.MESSAGE, messageString, user.getEncodedPublicKey());
                 objectOutputStream.writeObject(message);
             }
         } catch (InterruptedException e) {
