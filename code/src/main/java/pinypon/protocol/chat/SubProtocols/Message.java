@@ -1,4 +1,4 @@
-package pinypon.protocol.chat;
+package pinypon.protocol.chat.SubProtocols;
 
 import pinypon.action.chat.CreateTCPConnection;
 import pinypon.utils.Defaults;

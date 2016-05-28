@@ -17,7 +17,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pinypon.interaction.parser.Parser;
-import pinypon.listener.Listener;
+import pinypon.listener.ChatListener;
 import pinypon.user.Friend;
 import pinypon.user.User;
 import pinypon.utils.Defaults;
@@ -97,10 +97,9 @@ public class Gui extends Application {
         stage.show();
 
         try {
-            final Listener listener = new Listener(port);
+            final ChatListener chatListener = new ChatListener(port);
 
-            final Thread listenerThread = new Thread(listener);
-            listenerThread.start();
+            chatListener.start();
 
             this.stage.setOnCloseRequest(windowEvent -> {
                 try {
@@ -108,8 +107,8 @@ public class Gui extends Application {
                         this.user.store();
                     }
                     Platform.exit();
-                    listener.interrupt();
-                    listenerThread.join();
+                    chatListener.interrupt();
+                    chatListener.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
