@@ -16,6 +16,8 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.abstractj.kalium.encoders.Hex;
+import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.ChatListener;
@@ -37,6 +39,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.abstractj.kalium.encoders.Encoder.HEX;
 
 public class Gui extends Application {
 
@@ -66,9 +70,10 @@ public class Gui extends Application {
 
     private ActiveFriendTextArea activeFriendTextArea = new ActiveFriendTextArea();
     private ListView<Friend> friendsListView;
-    private HashMap<Integer, TextArea> friendsTextAreas = new HashMap<>();
+    private HashMap<String, TextArea> friendsTextAreas = new HashMap<>();
     private IPeerHandler iPeerHandler;
 
+    private TextField messageField;
     private BorderPane chatBorderPane;
     private Button loadProfileButton;
     private User user;
@@ -284,11 +289,11 @@ public class Gui extends Application {
     }
 
     private void chatSetup() {
-        HashMap<Integer, Friend> friends = this.user.getFriends();
+        HashMap<String, Friend> friends = this.user.getFriends();
         boolean gotFirst = false;
         Friend firstFriend = null;
         if (friends != null) {
-            Iterator<HashMap.Entry<Integer, Friend>> friendIterator = friends.entrySet().iterator();
+            Iterator<HashMap.Entry<String, Friend>> friendIterator = friends.entrySet().iterator();
             while (friendIterator.hasNext()) {
                 Friend friend = friendIterator.next().getValue();
                 if (!gotFirst) {
@@ -296,29 +301,29 @@ public class Gui extends Application {
                     gotFirst = true;
                 }
                 this.friendsListView.getItems().add(friend);
-                this.friendsTextAreas.putIfAbsent(friend.hashCode(), createChatTextArea());
+                this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), createChatTextArea());
             }
         }
         friendsListView.getSelectionModel().selectedItemProperty().addListener((observable, OldFriend, newFriend) -> {
-            TextArea friendTextArea = this.friendsTextAreas.get(newFriend.hashCode());
+            TextArea friendTextArea = this.friendsTextAreas.get(newFriend.getEncodedPublicKey());
             this.activeFriendTextArea.set(friendTextArea, newFriend);
             this.chatBorderPane.setCenter(friendTextArea);
         });
         if (firstFriend != null) {
-            TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend.hashCode());
+            TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend.getEncodedPublicKey());
             this.friendsListView.getSelectionModel().select(firstFriend);
             this.activeFriendTextArea.set(firstFriendTextArea, firstFriend);
             this.chatBorderPane.setCenter(firstFriendTextArea);
+        } else {
+            TextArea defaultTextArea = createChatTextArea();
+            this.activeFriendTextArea.set(defaultTextArea, null);
+            this.chatBorderPane.setCenter(defaultTextArea);
         }
 
-        // TEST
-        this.writeToTextArea(firstFriend.hashCode(), "Ola");
-        // END TEST
-
-        TextField messageField = new TextField();
-        messageField.setOnAction(actionEvent -> {
+        this.messageField = new TextField();
+        this.messageField.setOnAction(actionEvent -> {
             try {
-                messageHandler(messageField);
+                messageHandler();
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -326,16 +331,92 @@ public class Gui extends Application {
             }
         });
 
-        this.chatBorderPane.setBottom(messageField);
+        this.chatBorderPane.setBottom(this.messageField);
         this.stage.setScene(chatScene);
     }
 
-    private void messageHandler(TextField messageField) throws IOException, InterruptedException {
+    private void messageHandler() throws IOException, InterruptedException {
+        if (this.messageField.getText().isEmpty()) {
+            return;
+        }
+
         String message = new String(messageField.getText());
-        TextArea activeTextArea = this.activeFriendTextArea.getTextArea();
-        activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
-        messageField.clear();
-        this.iPeerHandler.sendMessage(this.user, this.activeFriendTextArea.getFriend(), message);
+        if (message.charAt(0) == '/') {
+            String[] filteredMessage= message.split(Defaults.WHITESPACE_REGEX);
+            switch (filteredMessage[0]) {
+                case "/add":
+                    if (filteredMessage.length != 3) {
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: username publicKey");
+                        throw new IllegalArgumentException("Expecting two more arguments: username publicKey");
+                    }
+                    try {
+                        addFriend(filteredMessage[1], filteredMessage[2]);
+                        // Friend Request call ipeer
+                    } catch (RuntimeException e) {
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid publicKey");
+                        throw new IllegalArgumentException("invalid publicKey");
+                    }
+                    break;
+                case "/id":
+                    if (filteredMessage.length == 1) {
+                        writeToActiveTextArea(this.user.getEncodedPublicKey());
+                    } else if (filteredMessage.length == 2) {
+                        switch (filteredMessage[1]) {
+                            case "mine":
+                                writeToActiveTextArea(this.user.getEncodedPublicKey());
+                                break;
+                            case "his":
+                                Friend friend = this.activeFriendTextArea.getFriend();
+                                if (friend != null) {
+                                    writeToActiveTextArea(friend.getEncodedPublicKey());
+                                } else {
+                                    simpleAlert(Alert.AlertType.ERROR, "User", "Bad state", "no user connected to this textArea");
+                                }
+                                break;
+                            default:
+                                simpleAlert(Alert.AlertType.ERROR, "User", "id bad input", "Bad option");
+                                throw new IllegalArgumentException("Bad option");
+                        }
+                    } else {
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "(mine|his|)");
+                        throw new IllegalArgumentException("No more arguments expected");
+                    }
+                    break;
+                default:
+                    simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "Bad option");
+                    throw new IllegalArgumentException("Bad option");
+            }
+        } else {
+            TextArea activeTextArea = this.activeFriendTextArea.getTextArea();
+            activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
+            this.messageField.clear();
+            this.iPeerHandler.sendMessage(this.user, this.activeFriendTextArea.getFriend(), message);
+        }
+    }
+
+    private void addFriend(String username, String encodedPublicKey) throws RuntimeException {
+        if (encodedPublicKey.equals(this.user.getEncodedPublicKey())) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "cant add yourself as a friend!");
+            return;
+        }
+        if (this.user.getFriend(encodedPublicKey) != null) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "friend already added!");
+            return;
+        }
+        Friend friend = new Friend(username, new PublicKey(HEX.decode(encodedPublicKey)));
+        this.user.addFriend(friend);
+        this.friendsListView.getItems().add(friend);
+        this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), createChatTextArea());
+        this.messageField.clear();
+    }
+
+    private void writeToActiveTextArea(String message) {
+        TextArea textArea = this.activeFriendTextArea.getTextArea();
+        if (textArea == null) {
+            return;
+        }
+        textArea.appendText(message + "\n");
+        this.messageField.clear();
     }
 
     private TextArea createChatTextArea() {
@@ -423,12 +504,12 @@ public class Gui extends Application {
         alert.showAndWait();
     }
 
-    public void writeToTextArea(int friendHashCode, String message) {
-        TextArea friendTextArea = this.friendsTextAreas.get(friendHashCode);
+    public void writeToTextArea(String encodedPublicKey, String message) {
+        TextArea friendTextArea = this.friendsTextAreas.get(encodedPublicKey);
         if (friendTextArea == null) {
             return;
         }
-        Friend friend = this.user.getFriend(friendHashCode);
+        Friend friend = this.user.getFriend(encodedPublicKey);
         friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
     }
 

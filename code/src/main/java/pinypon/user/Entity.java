@@ -25,6 +25,10 @@ public abstract class Entity implements Comparable<Entity> {
         return publicKey;
     }
 
+    public String getEncodedPublicKey() {
+        return this.publicKey.toString();
+    }
+
     @Override
     public int compareTo(Entity entity) {
         return this.getPublicKey().toString().compareTo(entity.getPublicKey().toString());
@@ -41,7 +45,7 @@ public abstract class Entity implements Comparable<Entity> {
 
     @Override
     public int hashCode() {
-        return this.getPublicKey().toString().hashCode();
+        return this.getEncodedPublicKey().hashCode();
     }
 
     @Override

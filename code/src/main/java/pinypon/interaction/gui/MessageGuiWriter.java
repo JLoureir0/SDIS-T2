@@ -19,7 +19,7 @@ public class MessageGuiWriter extends Thread {
         try {
             while(!kill) {
                 Message message = messagesToPrint.take();
-                this.gui.writeToTextArea(message.getSenderPublicKey().toString().hashCode(), message.getBody());
+                this.gui.writeToTextArea(message.getSenderPublicKey().toString(), message.getBody());
                 if (message == null) {
                     throw new InterruptedException();
                 }

@@ -26,8 +26,8 @@ final public class IPeerHandler implements ListeningThread {
         if (protocol == null) {
             // TODO
             // public key, call a dht function that returns an ipaddress and a port of the listening peer
-            String ipAddressString = "127.0.0.1";
-            int port = 54321;
+            String ipAddressString = "192.168.1.68";
+            int port = 44321;
             InetAddress ipAddress = InetAddress.getByName(ipAddressString);
             // return false if is offline
             protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));

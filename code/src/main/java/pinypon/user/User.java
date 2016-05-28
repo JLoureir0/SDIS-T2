@@ -21,7 +21,7 @@ public final class User extends Entity {
 
     private String password;
     private PrivateKey privateKey;
-    private HashMap<Integer, Friend> friends = new HashMap<>();
+    private HashMap<String, Friend> friends = new HashMap<>();
     private String jsonPath;
 
     public User(String username, String password, String jsonPath) {
@@ -37,17 +37,6 @@ public final class User extends Entity {
         if (jsonPath.isEmpty()) {
             this.jsonPath = Defaults.USER_JSON_PATH;
         }
-
-        // TEST friends stuff
-        Friend friend1 = new Friend("friend1", new KeyPair().getPublicKey());
-        addFriend(friend1);
-        Friend friend2 = new Friend("friend2", new KeyPair().getPublicKey());
-        addFriend(friend2);
-        Friend friend3 = new Friend("friend3", new KeyPair().getPublicKey());
-        addFriend(friend3);
-        Friend friend4 = new Friend("friend4", new KeyPair().getPublicKey());
-        addFriend(friend4);
-        // END TEST
     }
 
     public static User restore(String path, String password) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
@@ -68,20 +57,20 @@ public final class User extends Entity {
         this.password = password;
     }
 
-    public HashMap<Integer, Friend> getFriends() {
+    public HashMap<String, Friend> getFriends() {
         return this.friends;
     }
 
     public Friend getFriend(Friend friend) {
-        return this.friends.get(friend.hashCode());
+        return this.friends.get(friend.getEncodedPublicKey());
     }
 
-    public Friend getFriend(int hashcode) {
-        return this.friends.get(hashcode);
+    public Friend getFriend(String encodedPublicKey) {
+        return this.friends.get(encodedPublicKey);
     }
 
     public Friend addFriend(Friend friend) {
-        return this.friends.put(friend.hashCode(), friend);
+        return this.friends.put(friend.getEncodedPublicKey(), friend);
     }
 
     public boolean store() {
