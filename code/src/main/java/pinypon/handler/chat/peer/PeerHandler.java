@@ -1,32 +1,32 @@
-package pinypon.handler;
+package pinypon.handler.chat.peer;
 
-import pinypon.connection.ChatConnection;
+import pinypon.connection.chat.ChatConnection;
 import pinypon.protocol.ListeningThread;
-import pinypon.protocol.chat.Protocol;
+import pinypon.protocol.chat.Message;
+import pinypon.protocol.chat.peer.Protocol;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-final public class ChatHandler extends Thread implements ListeningThread {
+final public class PeerHandler extends Thread implements ListeningThread {
 
+    final private LinkedBlockingQueue<Message> messagesToPrint;
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
-    private long connections_loop_counter = CONNECTIONS_COUNTER_START;
-
     final private LinkedBlockingQueue<ChatConnection> queuedConnections;
     final private HashMap<Long, Protocol> connectionsProtocols;
+    private long connections_loop_counter = CONNECTIONS_COUNTER_START;
     private boolean interrupted = false;
 
-    public ChatHandler() throws IOException {
+    public PeerHandler() throws IOException {
         this.queuedConnections = new LinkedBlockingQueue<>();
         this.connectionsProtocols = new HashMap<>();
+        this.messagesToPrint = new LinkedBlockingQueue<>();
     }
 
     public void run() {
         try {
-            while (!interrupted) {
-                process_queued_connections();
-            }
+            process_queued_connections();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -45,6 +45,11 @@ final public class ChatHandler extends Thread implements ListeningThread {
     public void kill() {
         interrupted = true;
         super.interrupt();
+        try {
+            this.messagesToPrint.put(null);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         connectionsProtocols.forEach((connectionId, protocol) -> {
             protocol.kill();
             try {
@@ -55,18 +60,25 @@ final public class ChatHandler extends Thread implements ListeningThread {
         });
     }
 
+    public LinkedBlockingQueue<Message> getMessagesToPrint() {
+        return messagesToPrint;
+    }
+
     private void process_queued_connections() throws IOException, InterruptedException {
 
-        ChatConnection chatConnection = this.queuedConnections.take();
-        while (chatConnection != null) {
+        while (!interrupted) {
+            ChatConnection chatConnection = this.queuedConnections.take();
+            if (chatConnection == null) {
+                throw new InterruptedException();
+            }
             to_active_connection(chatConnection);
-            chatConnection = this.queuedConnections.poll();
+
         }
     }
 
     private void to_active_connection(ChatConnection chatConnection) throws IOException, InterruptedException {
 
-        Protocol protocol = new Protocol(chatConnection);
+        Protocol protocol = new Protocol(chatConnection, this.messagesToPrint);
         protocol.addListener(this);
 
         do {
@@ -78,6 +90,8 @@ final public class ChatHandler extends Thread implements ListeningThread {
                 Thread.currentThread().sleep(500);
             }
         } while (true);
+
+        protocol.start();
     }
 
     @Override

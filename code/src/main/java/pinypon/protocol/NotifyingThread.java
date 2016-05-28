@@ -17,5 +17,6 @@ public abstract class NotifyingThread extends Thread {
             notifyListener();
         }
     }
+
     public abstract void doRun();
 }

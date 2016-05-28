@@ -16,6 +16,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.ChatListener;
 import pinypon.user.Friend;
@@ -34,7 +35,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -46,9 +46,28 @@ public class Gui extends Application {
     private Scene chatScene;
     private Scene createUserScene;
 
-    private TextArea activeFriendTextArea;
+    private static class ActiveFriendTextArea {
+        private TextArea textArea;
+        private Friend friend;
+
+        public void set(TextArea textArea, Friend friend) {
+            this.textArea = textArea;
+            this.friend = friend;
+        }
+
+        public Friend getFriend() {
+            return friend;
+        }
+
+        public TextArea getTextArea() {
+            return textArea;
+        }
+    }
+
+    private ActiveFriendTextArea activeFriendTextArea = new ActiveFriendTextArea();
     private ListView<Friend> friendsListView;
-    private HashMap<Friend, TextArea> friendsTextAreas = new HashMap<>();
+    private HashMap<Integer, TextArea> friendsTextAreas = new HashMap<>();
+    private IPeerHandler iPeerHandler;
 
     private BorderPane chatBorderPane;
     private Button loadProfileButton;
@@ -78,6 +97,8 @@ public class Gui extends Application {
         restoreUserScene();
         registerLoadScene();
         chatScene();
+
+        this.iPeerHandler = new IPeerHandler();
     }
 
     @Override
@@ -98,7 +119,7 @@ public class Gui extends Application {
 
         try {
             final ChatListener chatListener = new ChatListener(port);
-
+            final MessageGuiWriter messageGuiWriter = new MessageGuiWriter(this, chatListener.getChatHandler().getMessagesToPrint());
             chatListener.start();
 
             this.stage.setOnCloseRequest(windowEvent -> {
@@ -108,6 +129,8 @@ public class Gui extends Application {
                     }
                     Platform.exit();
                     chatListener.interrupt();
+                    messageGuiWriter.interrupt();
+                    messageGuiWriter.join();
                     chatListener.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -261,50 +284,58 @@ public class Gui extends Application {
     }
 
     private void chatSetup() {
-        HashSet<Friend> friends = this.user.getFriends();
+        HashMap<Integer, Friend> friends = this.user.getFriends();
         boolean gotFirst = false;
         Friend firstFriend = null;
         if (friends != null) {
-            Iterator<Friend> friendIterator = friends.iterator();
+            Iterator<HashMap.Entry<Integer, Friend>> friendIterator = friends.entrySet().iterator();
             while (friendIterator.hasNext()) {
-                Friend friend = friendIterator.next();
+                Friend friend = friendIterator.next().getValue();
                 if (!gotFirst) {
                     firstFriend = friend;
                     gotFirst = true;
                 }
                 this.friendsListView.getItems().add(friend);
-                this.friendsTextAreas.putIfAbsent(friend, createChatTextArea());
+                this.friendsTextAreas.putIfAbsent(friend.hashCode(), createChatTextArea());
             }
         }
         friendsListView.getSelectionModel().selectedItemProperty().addListener((observable, OldFriend, newFriend) -> {
-            TextArea friendTextArea = this.friendsTextAreas.get(newFriend);
-            this.activeFriendTextArea = friendTextArea;
+            TextArea friendTextArea = this.friendsTextAreas.get(newFriend.hashCode());
+            this.activeFriendTextArea.set(friendTextArea, newFriend);
             this.chatBorderPane.setCenter(friendTextArea);
         });
         if (firstFriend != null) {
-            TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend);
+            TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend.hashCode());
             this.friendsListView.getSelectionModel().select(firstFriend);
-            this.activeFriendTextArea = firstFriendTextArea;
+            this.activeFriendTextArea.set(firstFriendTextArea, firstFriend);
             this.chatBorderPane.setCenter(firstFriendTextArea);
         }
 
         // TEST
-        this.writeToTextArea(firstFriend, "Ola");
+        this.writeToTextArea(firstFriend.hashCode(), "Ola");
         // END TEST
 
         TextField messageField = new TextField();
-        messageField.setOnAction(actionEvent -> messageHandler(messageField));
+        messageField.setOnAction(actionEvent -> {
+            try {
+                messageHandler(messageField);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
 
         this.chatBorderPane.setBottom(messageField);
         this.stage.setScene(chatScene);
     }
 
-    private void messageHandler(TextField messageField) {
+    private void messageHandler(TextField messageField) throws IOException, InterruptedException {
         String message = new String(messageField.getText());
-        this.activeFriendTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
+        TextArea activeTextArea = this.activeFriendTextArea.getTextArea();
+        activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
         messageField.clear();
-        // TODO
-        // Send this message to the other guy call some class
+        this.iPeerHandler.sendMessage(this.user, this.activeFriendTextArea.getFriend(), message);
     }
 
     private TextArea createChatTextArea() {
@@ -392,12 +423,13 @@ public class Gui extends Application {
         alert.showAndWait();
     }
 
-    public void writeToTextArea(Friend friend, String message) {
-        TextArea friendTextArea = this.friendsTextAreas.get(friend);
+    public void writeToTextArea(int friendHashCode, String message) {
+        TextArea friendTextArea = this.friendsTextAreas.get(friendHashCode);
         if (friendTextArea == null) {
             return;
         }
-        friendTextArea.appendText(friend + ": " + message + "\n");
+        Friend friend = this.user.getFriend(friendHashCode);
+        friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
     }
 
     private static class CreateUserFields {

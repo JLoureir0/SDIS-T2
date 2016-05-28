@@ -1,21 +1,27 @@
 package pinypon.listener;
 
-import pinypon.connection.ChatConnection;
-import pinypon.handler.ChatHandler;
+import pinypon.connection.chat.ChatConnection;
+import pinypon.handler.chat.peer.PeerHandler;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 
 final public class ChatListener extends Thread {
 
     private final ServerSocket serverSocket;
-    private final ChatHandler chatHandler;
+    private final PeerHandler chatHandler;
     private boolean interrupted = false;
 
     public ChatListener(int port) throws IOException {
         this.serverSocket = new ServerSocket(port);
-        this.chatHandler = new ChatHandler();
+        this.chatHandler = new PeerHandler();
         this.chatHandler.start();
+    }
+
+    public PeerHandler getChatHandler() {
+        return chatHandler;
     }
 
     public void run() {

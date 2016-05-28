@@ -15,13 +15,13 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashSet;
+import java.util.HashMap;
 
 public final class User extends Entity {
 
     private String password;
     private PrivateKey privateKey;
-    private HashSet<Friend> friends = new HashSet<>();
+    private HashMap<Integer, Friend> friends = new HashMap<>();
     private String jsonPath;
 
     public User(String username, String password, String jsonPath) {
@@ -39,11 +39,14 @@ public final class User extends Entity {
         }
 
         // TEST friends stuff
-        friends.add(new Friend("friend1", new KeyPair().getPublicKey()));
-        friends.add(new Friend("friend2", new KeyPair().getPublicKey()));
-        friends.add(new Friend("friend3", new KeyPair().getPublicKey()));
-        friends.add(new Friend("friend4", new KeyPair().getPublicKey()));
-        friends.add(new Friend("friend5", new KeyPair().getPublicKey()));
+        Friend friend1 = new Friend("friend1", new KeyPair().getPublicKey());
+        addFriend(friend1);
+        Friend friend2 = new Friend("friend2", new KeyPair().getPublicKey());
+        addFriend(friend2);
+        Friend friend3 = new Friend("friend3", new KeyPair().getPublicKey());
+        addFriend(friend3);
+        Friend friend4 = new Friend("friend4", new KeyPair().getPublicKey());
+        addFriend(friend4);
         // END TEST
     }
 
@@ -65,16 +68,20 @@ public final class User extends Entity {
         this.password = password;
     }
 
-    public HashSet<Friend> getFriends() {
+    public HashMap<Integer, Friend> getFriends() {
         return this.friends;
     }
 
-    public boolean addFriend(Friend friend) {
-        return this.friends.add(friend);
+    public Friend getFriend(Friend friend) {
+        return this.friends.get(friend.hashCode());
     }
 
-    public boolean removeFriend(Friend friend) {
-        return this.friends.remove(friend);
+    public Friend getFriend(int hashcode) {
+        return this.friends.get(hashcode);
+    }
+
+    public Friend addFriend(Friend friend) {
+        return this.friends.put(friend.hashCode(), friend);
     }
 
     public boolean store() {

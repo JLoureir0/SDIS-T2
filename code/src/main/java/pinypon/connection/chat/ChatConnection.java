@@ -1,4 +1,4 @@
-package pinypon.connection;
+package pinypon.connection.chat;
 
 import java.net.Socket;
 import java.util.Comparator;

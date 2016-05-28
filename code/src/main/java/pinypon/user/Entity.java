@@ -41,7 +41,7 @@ public abstract class Entity implements Comparable<Entity> {
 
     @Override
     public int hashCode() {
-        return this.getPublicKey().hashCode();
+        return this.getPublicKey().toString().hashCode();
     }
 
     @Override
