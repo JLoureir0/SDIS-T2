@@ -62,6 +62,11 @@ public class Protocol extends NotifyingThread {
     public void kill() {
         this.interrupted = true;
         super.interrupt();
+        try {
+            this.chatConnection.socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         messagesToSend.add(null);
     }
 

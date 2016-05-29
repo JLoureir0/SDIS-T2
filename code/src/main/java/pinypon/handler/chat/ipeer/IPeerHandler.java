@@ -21,7 +21,7 @@ final public class IPeerHandler implements ListeningThread {
         this.establishedConnection = new HashMap<>();
     }
 
-    public boolean sendMessage(User user, Friend friend, String message) throws IOException, InterruptedException {
+    public synchronized boolean sendMessage(User user, Friend friend, String message) throws IOException, InterruptedException {
         Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
         if (protocol == null) {
             // TODO
@@ -38,7 +38,7 @@ final public class IPeerHandler implements ListeningThread {
         return true;
     }
 
-    public void kill() {
+    public synchronized void kill() {
         kill = true;
         establishedConnection.forEach((connectionId, protocol) -> {
             try {
@@ -51,12 +51,17 @@ final public class IPeerHandler implements ListeningThread {
     }
 
     @Override
-    public void notifyThreadComplete(Object object) {
+    public synchronized void notifyThreadComplete(Object object) {
         if (object == null) {
             return;
         }
         Protocol protocol = (Protocol) object;
         establishedConnection.remove(protocol.getFriend().getEncodedPublicKey());
+        try {
+            protocol.getChatConnection().socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
 
