@@ -16,6 +16,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.ChatListener;
@@ -37,6 +38,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.abstractj.kalium.encoders.Encoder.HEX;
 
 public class Gui extends Application {
 
@@ -374,7 +377,14 @@ public class Gui extends Application {
         }
     }
 
-    private void addFriend(String username, String encodedPublicKey) throws RuntimeException {
+    private void addFriend(String username, String encodedPublicKey) {
+
+        try {
+            new PublicKey(HEX.decode(encodedPublicKey));
+        } catch (RuntimeException e) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid public key");
+            return;
+        }
         if (encodedPublicKey.equals(this.user.getEncodedPublicKey())) {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "cant add yourself as a friend!");
             return;
@@ -385,8 +395,17 @@ public class Gui extends Application {
         }
         Friend friend = new Friend(username, encodedPublicKey);
         this.user.addFriend(friend);
+
         this.friendsListView.getItems().add(friend);
-        this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), createChatTextArea());
+        TextArea friendTextArea = createChatTextArea();
+        this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), friendTextArea);
+
+        if (user.getFriends().size() == 1) {
+            this.activeFriendTextArea.set(friendTextArea, friend);
+            this.chatBorderPane.setCenter(friendTextArea);
+            this.friendsListView.getSelectionModel().select(friend);
+        }
+
         this.messageField.clear();
     }
 
