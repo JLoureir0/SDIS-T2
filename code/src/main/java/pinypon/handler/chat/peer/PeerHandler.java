@@ -4,6 +4,7 @@ import pinypon.connection.chat.ChatConnection;
 import pinypon.protocol.ListeningThread;
 import pinypon.protocol.chat.Message;
 import pinypon.protocol.chat.peer.Protocol;
+import pinypon.user.User;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class PeerHandler extends Thread implements ListeningThread {
 
+    final private User user;
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
     final private LinkedBlockingQueue<Message> messagesToPrint;
     final private LinkedBlockingQueue<ChatConnection> queuedConnections;
@@ -18,10 +20,11 @@ final public class PeerHandler extends Thread implements ListeningThread {
     private long connections_loop_counter = CONNECTIONS_COUNTER_START;
     private boolean interrupted = false;
 
-    public PeerHandler() throws IOException {
+    public PeerHandler(User user) throws IOException {
         this.messagesToPrint = new LinkedBlockingQueue<>();
         this.queuedConnections = new LinkedBlockingQueue<>();
         this.connectionsProtocols = new HashMap<>();
+        this.user = user;
     }
 
     public void run() {
@@ -49,7 +52,7 @@ final public class PeerHandler extends Thread implements ListeningThread {
 
     private void to_active_connection(ChatConnection chatConnection) throws IOException, InterruptedException {
 
-        Protocol protocol = new Protocol(chatConnection, this.messagesToPrint);
+        Protocol protocol = new Protocol(this.user, chatConnection, this.messagesToPrint);
         protocol.addListener(this);
 
         do {

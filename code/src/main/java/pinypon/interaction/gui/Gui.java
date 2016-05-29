@@ -81,8 +81,6 @@ public class Gui extends Application {
         restoreUserScene();
         registerLoadScene();
         chatScene();
-
-        this.iPeerHandler = new IPeerHandler();
     }
 
     @Override
@@ -100,34 +98,6 @@ public class Gui extends Application {
             stage.setScene(this.registerLoadScene);
         }
         stage.show();
-
-        try {
-            final ChatListener chatListener = new ChatListener(this.port);
-            final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
-            chatListener.start();
-            guiMessagePrinter.start();
-
-            this.stage.setOnCloseRequest(windowEvent -> {
-                try {
-                    if (this.user != null) {
-                        this.user.store();
-                    }
-                    Platform.exit();
-                    chatListener.kill();
-                    guiMessagePrinter.kill();
-                    this.iPeerHandler.kill();
-                    guiMessagePrinter.join();
-                    chatListener.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    System.exit(0);
-                }
-            });
-
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
     }
 
     private void restoreUserScene() {
@@ -269,7 +239,10 @@ public class Gui extends Application {
         this.chatScene = new Scene(chatBorderPane);
     }
 
-    private void chatSetup() {
+    private void chatSetup() throws IOException {
+
+        initWorkerThreads();
+
         HashMap<String, Friend> friends = this.user.getFriends();
         boolean gotFirst = false;
         Friend firstFriend = null;
@@ -332,7 +305,7 @@ public class Gui extends Application {
                     }
                     try {
                         addFriend(filteredMessage[1], filteredMessage[2]);
-                        // Friend Request call ipeer
+                        // Friend Request call iPeer
                     } catch (RuntimeException e) {
                         simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid publicKey");
                         throw new IllegalArgumentException("invalid publicKey");
@@ -432,6 +405,8 @@ public class Gui extends Application {
             chatSetup();
         } catch (IllegalArgumentException e) {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad Input", e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -537,5 +512,31 @@ public class Gui extends Application {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
         }
+    }
+
+    private void initWorkerThreads() throws IOException {
+            final ChatListener chatListener = new ChatListener(this.user, this.port);
+            final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
+            this.iPeerHandler = new IPeerHandler();
+            chatListener.start();
+            guiMessagePrinter.start();
+
+            this.stage.setOnCloseRequest(windowEvent -> {
+                try {
+                    if (this.user != null) {
+                        this.user.store();
+                    }
+                    Platform.exit();
+                    chatListener.kill();
+                    guiMessagePrinter.kill();
+                    this.iPeerHandler.kill();
+                    guiMessagePrinter.join();
+                    chatListener.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    System.exit(0);
+                }
+            });
     }
 }

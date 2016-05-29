@@ -5,6 +5,8 @@ import java.io.Serializable;
 public class Message implements Serializable {
 
     public static final int MESSAGE = 0;
+    public static final int END_MESSAGE = 1;
+
     private String encodedSenderPublicKey;
     private int type;
     private String body;

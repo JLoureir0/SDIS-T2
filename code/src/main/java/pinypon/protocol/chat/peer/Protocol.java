@@ -3,6 +3,7 @@ package pinypon.protocol.chat.peer;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.protocol.NotifyingThread;
 import pinypon.protocol.chat.Message;
+import pinypon.user.User;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,13 +12,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class Protocol extends NotifyingThread {
 
+    private final User user;
     private final ObjectInputStream objectInputStream;
     private final ObjectOutputStream objectOutputStream;
     private final LinkedBlockingQueue<Message> messagesToPrint;
     private final ChatConnection chatConnection;
     private boolean kill = false;
 
-    public Protocol(ChatConnection chatConnection, LinkedBlockingQueue<Message> messagesToPrint) throws IOException {
+    public Protocol(User user, ChatConnection chatConnection, LinkedBlockingQueue<Message> messagesToPrint) throws IOException {
         if (chatConnection == null) {
             throw new IllegalArgumentException("bad chatConnection");
         }
@@ -26,6 +28,7 @@ final public class Protocol extends NotifyingThread {
 
         this.objectInputStream = new ObjectInputStream(chatConnection.socket.getInputStream());
         this.objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
+        this.user = user;
     }
 
     @Override
@@ -82,9 +85,14 @@ final public class Protocol extends NotifyingThread {
     }
 
     public void kill() {
-        this.kill = true;
-        super.interrupt();
         try {
+            objectOutputStream.writeObject(
+                    new Message(Message.END_MESSAGE, null, this.user.getEncodedPublicKey())
+            );
+            this.kill = true;
+            super.interrupt();
+            objectInputStream.close();
+            objectOutputStream.close();
             chatConnection.socket.close();
         } catch (IOException e) {
             e.printStackTrace();
