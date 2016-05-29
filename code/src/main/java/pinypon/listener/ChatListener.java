@@ -34,7 +34,7 @@ final public class ChatListener extends Thread {
                 this.peerHandler.put(new ChatConnection(socket));
             }
         } catch (SocketException e) {
-            e.printStackTrace();
+            System.out.println("Listener closed");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -52,7 +52,6 @@ final public class ChatListener extends Thread {
         try {
             this.peerHandler.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 }

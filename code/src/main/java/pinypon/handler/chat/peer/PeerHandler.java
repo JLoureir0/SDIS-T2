@@ -33,20 +33,17 @@ final public class PeerHandler extends Thread implements ListeningThread {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
-
 
     private void process_queued_connections() throws IOException, InterruptedException {
 
         while (!interrupted) {
             ChatConnection chatConnection = this.queuedConnections.take();
             if (chatConnection == null) {
-                throw new InterruptedException();
+                return;
             }
             to_active_connection(chatConnection);
-
         }
     }
 
