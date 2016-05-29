@@ -2,6 +2,7 @@ package pinypon.listener;
 
 import pinypon.connection.chat.ChatConnection;
 import pinypon.handler.chat.peer.PeerHandler;
+import pinypon.interaction.gui.Gui;
 import pinypon.user.User;
 
 import java.io.IOException;
@@ -16,15 +17,11 @@ final public class ChatListener extends Thread {
     private final PeerHandler peerHandler;
     private boolean kill = false;
 
-    public ChatListener(User user, int port) throws IOException {
+    public ChatListener(User user, int port, Gui gui) throws IOException {
         this.user = user;
         this.serverSocket = new ServerSocket(port);
-        this.peerHandler = new PeerHandler(this.user);
+        this.peerHandler = new PeerHandler(this.user, gui);
         this.peerHandler.start();
-    }
-
-    public PeerHandler getPeerHandler() {
-        return peerHandler;
     }
 
     public void run() {
@@ -53,6 +50,10 @@ final public class ChatListener extends Thread {
             this.peerHandler.join();
         } catch (InterruptedException e) {
         }
+    }
+
+    public PeerHandler getPeerHandler() {
+        return peerHandler;
     }
 }
 

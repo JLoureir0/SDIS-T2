@@ -1,6 +1,7 @@
 package pinypon.protocol.chat.peer;
 
 import pinypon.connection.chat.ChatConnection;
+import pinypon.interaction.gui.Gui;
 import pinypon.protocol.NotifyingThread;
 import pinypon.protocol.chat.Message;
 import pinypon.user.User;
@@ -11,25 +12,25 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
-final public class Protocol extends NotifyingThread {
+final public class PeerProtocol extends NotifyingThread {
 
     private final User user;
     private final ObjectInputStream objectInputStream;
     private final ObjectOutputStream objectOutputStream;
-    private final LinkedBlockingQueue<Message> messagesToPrint;
     private final ChatConnection chatConnection;
     private boolean kill = false;
+    private final Gui gui;
 
-    public Protocol(User user, ChatConnection chatConnection, LinkedBlockingQueue<Message> messagesToPrint) throws IOException {
+    public PeerProtocol(User user, ChatConnection chatConnection, Gui gui) throws IOException {
         if (chatConnection == null) {
             throw new IllegalArgumentException("bad chatConnection");
         }
         this.chatConnection = chatConnection;
-        this.messagesToPrint = messagesToPrint;
 
         this.objectInputStream = new ObjectInputStream(chatConnection.socket.getInputStream());
         this.objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
         this.user = user;
+        this.gui = gui;
     }
 
     @Override
@@ -40,20 +41,19 @@ final public class Protocol extends NotifyingThread {
             while (!reachedFinalState && !kill) {
 
                 Object objectReceived = objectInputStream.readObject();
-                Message message;
-
                 if (objectReceived instanceof Message) {
-                    message = (Message) objectReceived;
+                    Message message = (Message) objectReceived;
+                    switch (message.getType()) {
+                        case Message.MESSAGE:
+                            this.gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody());
+                            break;
+                        case Message.FRIEND_REQUEST:
+                            this.gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody());
+                        default:
+                            throw new IllegalStateException("Unknown header type");
+                    }
                 } else {
                     throw new IllegalStateException("Illegal Object");
-                }
-
-                switch (message.getType()) {
-                    case Message.MESSAGE:
-                        this.messagesToPrint.put(message);
-                        break;
-                    default:
-                        throw new IllegalStateException("Unknown header type");
                 }
             }
         } catch (EOFException e) {
@@ -62,13 +62,16 @@ final public class Protocol extends NotifyingThread {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
     public synchronized ChatConnection getChatConnection() {
         return chatConnection;
+    }
+
+    public synchronized void send(Message message) throws InterruptedException, IOException {
+        objectOutputStream.writeObject(message);
+        objectOutputStream.flush();
     }
 
     @Override

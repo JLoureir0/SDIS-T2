@@ -1,6 +1,7 @@
 package pinypon.protocol.chat.ipeer;
 
 import pinypon.connection.chat.ChatConnection;
+import pinypon.interaction.gui.Gui;
 import pinypon.protocol.NotifyingThread;
 import pinypon.protocol.chat.Message;
 import pinypon.user.Friend;
@@ -11,15 +12,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public class Protocol extends NotifyingThread {
+public class IPeerProtocol extends NotifyingThread {
     private final ChatConnection chatConnection;
     private final User user;
     private final Friend friend;
     private boolean kill = false;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
+    private final Gui gui;
 
-    public Protocol(User user, Friend friend, ChatConnection chatConnection) throws IOException {
+    public IPeerProtocol(User user, Friend friend, ChatConnection chatConnection, Gui gui) throws IOException {
         this.user = user;
         this.friend = friend;
         if (chatConnection == null) {
@@ -28,6 +30,7 @@ public class Protocol extends NotifyingThread {
         this.chatConnection = chatConnection;
         this.objectOutputStream = new ObjectOutputStream(this.chatConnection.socket.getOutputStream());
         this.objectInputStream = new ObjectInputStream(this.chatConnection.socket.getInputStream());
+        this.gui = gui;
     }
 
     @Override
@@ -40,6 +43,12 @@ public class Protocol extends NotifyingThread {
                     switch (message.getType()) {
                         case Message.END_MESSAGE:
                             return;
+                        case Message.ACCEPT_FRIEND_REQUEST:
+                            this.gui.addFriendIPeer(message.getEncodedSenderPublicKey());
+                            break;
+                        case Message.DENY_FRIEND_REQUEST:
+                            this.gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey());
+                            break;
                         default:
                             throw new IllegalStateException("Bad Message");
                     }
@@ -54,13 +63,9 @@ public class Protocol extends NotifyingThread {
         }
     }
 
-    public synchronized void add(String message) throws InterruptedException, IOException {
-        objectOutputStream.writeObject(new Message(Message.MESSAGE, message, user.getEncodedPublicKey()));
+    public synchronized void send(Message message) throws InterruptedException, IOException {
+        objectOutputStream.writeObject(message);
         objectOutputStream.flush();
-    }
-
-    public synchronized ChatConnection getChatConnection() {
-        return chatConnection;
     }
 
     @Override

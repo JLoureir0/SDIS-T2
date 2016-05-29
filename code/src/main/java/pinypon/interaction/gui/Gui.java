@@ -18,8 +18,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
+import pinypon.handler.chat.peer.PeerHandler;
 import pinypon.interaction.parser.Parser;
 import pinypon.listener.ChatListener;
+import pinypon.protocol.chat.Message;
 import pinypon.user.Friend;
 import pinypon.user.User;
 import pinypon.utils.Defaults;
@@ -37,6 +39,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import static org.abstractj.kalium.encoders.Encoder.HEX;
 
@@ -51,12 +54,14 @@ public class Gui extends Application {
     private ListView<Friend> friendsListView;
     private HashMap<String, TextArea> friendsTextAreas = new HashMap<>();
     private IPeerHandler iPeerHandler;
+    private PeerHandler peerHandler;
     private TextField messageField;
     private BorderPane chatBorderPane;
     private Button loadProfileButton;
     private User user;
     private int port;
     private String userJsonPath;
+    private HashMap<String, Friend> friendsAwaitingAdd = new HashMap<>();
 
     @Override
     public void init() throws Exception {
@@ -297,14 +302,13 @@ public class Gui extends Application {
         if (message.charAt(0) == '/') {
             String[] filteredMessage = message.split(Defaults.WHITESPACE_REGEX);
             switch (filteredMessage[0]) {
-                case "/add":
-                    if (filteredMessage.length != 3) {
-                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: username publicKey");
+                case "/send":
+                    if (filteredMessage.length != 4) {
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: username helloMessage publicKey");
                         throw new IllegalArgumentException("Expecting two more arguments: username publicKey");
                     }
                     try {
-                        addFriend(filteredMessage[1], filteredMessage[2]);
-                        // Friend Request call iPeer
+                        addFriendRequest(filteredMessage[1], filteredMessage[2], filteredMessage[3]);
                     } catch (RuntimeException e) {
                         simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid publicKey");
                         throw new IllegalArgumentException("invalid publicKey");
@@ -344,32 +348,91 @@ public class Gui extends Application {
             activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
             this.messageField.clear();
             Friend friend = this.activeFriendTextArea.getFriend();
-            this.iPeerHandler.sendMessage(this.user, friend, message);
+            this.iPeerHandler.sendMessage(this.user, friend, Message.MESSAGE, message);
         }
     }
 
-    private void addFriend(String username, String encodedPublicKey) {
+    private void addFriendRequest(String username, String helloMessage, String friendEncodedPublicKey) {
 
         try {
-            new PublicKey(HEX.decode(encodedPublicKey));
+            new PublicKey(HEX.decode(friendEncodedPublicKey));
         } catch (RuntimeException e) {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid public key");
             return;
         }
-        if (encodedPublicKey.equals(this.user.getEncodedPublicKey())) {
-            simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "cant add yourself as a friend!");
+        if (friendEncodedPublicKey.equals(this.user.getEncodedPublicKey())) {
+            simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "cant send yourself as a friend!");
             return;
         }
-        if (this.user.getFriend(encodedPublicKey) != null) {
+        if (this.user.getFriend(friendEncodedPublicKey) != null) {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "friend already added!");
             return;
         }
-        Friend friend = new Friend(username, encodedPublicKey);
+        Friend friend = new Friend(username, friendEncodedPublicKey);
+        this.friendsAwaitingAdd.putIfAbsent(friendEncodedPublicKey, friend);
+        this.iPeerHandler.sendMessage(this.user, friend, Message.FRIEND_REQUEST, helloMessage);
+        this.messageField.clear();
+    }
+
+    public synchronized boolean addFriendIPeer(String friendEncodedPublicKey) {
+        Friend friendToAdd = friendsAwaitingAdd.get(friendEncodedPublicKey);
+        if (friendToAdd == null) {
+            return false;
+        }
+        this.user.addFriend(friendToAdd);
+
+        this.friendsListView.getItems().add(friendToAdd);
+        TextArea friendTextArea = createChatTextArea();
+        this.friendsTextAreas.putIfAbsent(friendEncodedPublicKey, friendTextArea);
+
+        if (user.getFriends().size() == 1) {
+            this.activeFriendTextArea.set(friendTextArea, friendToAdd);
+            this.chatBorderPane.setCenter(friendTextArea);
+            this.friendsListView.getSelectionModel().select(friendToAdd);
+        }
+
+        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + "accepted friend request");
+        return true;
+    }
+
+    public synchronized boolean refusedAddFriendIPeer(String friendEncodedPublicKey) {
+        Friend friendToAdd = friendsAwaitingAdd.get(friendEncodedPublicKey);
+        if (friendToAdd == null) {
+            return false;
+        }
+        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + "did not accept friend request");
+        return true;
+    }
+
+    private String AcceptRefuseFriendRequest(String friendEncodedPublicKey, String messageBody) {
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Friend Request");
+        dialog.setHeaderText(friendEncodedPublicKey + " wants to add you");
+        dialog.setContentText(messageBody);
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()){
+            return result.get();
+        }
+
+        return null;
+    }
+
+    public synchronized boolean addFriendPeer(String friendEncodedPublicKey, String messageBody) {
+
+        String friendUsername = AcceptRefuseFriendRequest(friendEncodedPublicKey, messageBody);
+        if (friendUsername == null) {
+            this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.DENY_FRIEND_REQUEST, null);
+            return false;
+        }
+
+        Friend friend = new Friend(friendUsername, friendEncodedPublicKey);
         this.user.addFriend(friend);
 
         this.friendsListView.getItems().add(friend);
         TextArea friendTextArea = createChatTextArea();
-        this.friendsTextAreas.putIfAbsent(friend.getEncodedPublicKey(), friendTextArea);
+        this.friendsTextAreas.putIfAbsent(friendEncodedPublicKey, friendTextArea);
 
         if (user.getFriends().size() == 1) {
             this.activeFriendTextArea.set(friendTextArea, friend);
@@ -377,7 +440,8 @@ public class Gui extends Application {
             this.friendsListView.getSelectionModel().select(friend);
         }
 
-        this.messageField.clear();
+        this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.ACCEPT_FRIEND_REQUEST, null);
+        return true;
     }
 
     private void writeToActiveTextArea(String message) {
@@ -476,7 +540,7 @@ public class Gui extends Application {
         alert.showAndWait();
     }
 
-    public void writeToTextArea(String encodedPublicKey, String message) {
+    public synchronized void writeToTextArea(String encodedPublicKey, String message) {
         TextArea friendTextArea = this.friendsTextAreas.get(encodedPublicKey);
         if (friendTextArea == null) {
             return;
@@ -486,11 +550,10 @@ public class Gui extends Application {
     }
 
     private void initWorkerThreads() throws IOException {
-        final ChatListener chatListener = new ChatListener(this.user, this.port);
-        final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
-        this.iPeerHandler = new IPeerHandler();
+        final ChatListener chatListener = new ChatListener(this.user, this.port, this);
+        this.peerHandler = chatListener.getPeerHandler();
+        this.iPeerHandler = new IPeerHandler(this);
         chatListener.start();
-        guiMessagePrinter.start();
 
         this.stage.setOnCloseRequest(windowEvent -> {
             try {
@@ -499,9 +562,7 @@ public class Gui extends Application {
                 }
                 Platform.exit();
                 chatListener.kill();
-                guiMessagePrinter.kill();
                 this.iPeerHandler.kill();
-                guiMessagePrinter.join();
                 chatListener.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();

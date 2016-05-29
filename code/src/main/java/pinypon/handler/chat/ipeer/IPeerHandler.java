@@ -1,8 +1,10 @@
 package pinypon.handler.chat.ipeer;
 
 import pinypon.connection.chat.ChatConnection;
+import pinypon.interaction.gui.Gui;
 import pinypon.protocol.ListeningThread;
-import pinypon.protocol.chat.ipeer.Protocol;
+import pinypon.protocol.chat.Message;
+import pinypon.protocol.chat.ipeer.IPeerProtocol;
 import pinypon.user.Friend;
 import pinypon.user.User;
 
@@ -14,30 +16,32 @@ import java.util.HashMap;
 
 final public class IPeerHandler implements ListeningThread {
 
-    final private HashMap<String, Protocol> establishedConnection;
+    final private Gui gui;
+    final private HashMap<String, IPeerProtocol> establishedConnection;
 
     private boolean kill = false;
 
-    public IPeerHandler() throws IOException {
+    public IPeerHandler(Gui gui) throws IOException {
+        this.gui = gui;
         this.establishedConnection = new HashMap<>();
     }
 
-    public synchronized boolean sendMessage(User user, Friend friend, String message) {
+    public synchronized boolean sendMessage(User user, Friend friend, int type, String message) {
         try {
-            Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
-            if (protocol == null) {
+            IPeerProtocol IPeerProtocol = establishedConnection.get(friend.getEncodedPublicKey());
+            if (IPeerProtocol == null) {
                 // TODO
                 // public key, call a dht function that returns an ipAddress and a port of the listening peer
-                String ipAddressString = "192.168.1.73";
-                int port = 54321;
+                String ipAddressString = "127.0.0.1";
+                int port = 44321;
                 InetAddress ipAddress = InetAddress.getByName(ipAddressString);
                 // return false if is offline
-                protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
-                protocol.addListener(this);
-                establishedConnection.put(friend.getEncodedPublicKey(), protocol);
-                protocol.start();
+                IPeerProtocol = new IPeerProtocol(user, friend, new ChatConnection(new Socket(ipAddress, port)), this.gui);
+                IPeerProtocol.addListener(this);
+                establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
+                IPeerProtocol.start();
             }
-            protocol.add(message);
+            IPeerProtocol.send(new Message(type, message, friend.getEncodedPublicKey()));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -65,13 +69,13 @@ final public class IPeerHandler implements ListeningThread {
         if (object == null) {
             return;
         }
-        Protocol protocol = (Protocol) object;
-        if (establishedConnection.remove(protocol.getFriend().getEncodedPublicKey()) == null) {
-            throw new IllegalStateException("Expecting protocol removal");
+        IPeerProtocol IPeerProtocol = (IPeerProtocol) object;
+        if (establishedConnection.remove(IPeerProtocol.getFriend().getEncodedPublicKey()) == null) {
+            throw new IllegalStateException("Expecting IPeerProtocol removal");
         }
-        protocol.kill();
+        IPeerProtocol.kill();
         try {
-            protocol.join();
+            IPeerProtocol.join();
         } catch (InterruptedException e) {
         }
     }

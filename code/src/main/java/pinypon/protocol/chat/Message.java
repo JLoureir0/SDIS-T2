@@ -6,6 +6,9 @@ public class Message implements Serializable {
 
     public static final int MESSAGE = 0;
     public static final int END_MESSAGE = 1;
+    public static final int FRIEND_REQUEST = 2;
+    public static final int ACCEPT_FRIEND_REQUEST = 3;
+    public static final int DENY_FRIEND_REQUEST = 4;
 
     private String encodedSenderPublicKey;
     private int type;
