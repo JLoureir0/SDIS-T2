@@ -5,6 +5,7 @@ import pinypon.protocol.NotifyingThread;
 import pinypon.protocol.chat.Message;
 import pinypon.user.User;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -52,26 +53,17 @@ final public class Protocol extends NotifyingThread {
                         this.messagesToPrint.put(message);
                         break;
                     default:
-                        objectInputStream.close();
-                        objectOutputStream.close();
-                        chatConnection.socket.close();
                         throw new IllegalStateException("Unknown header type");
                 }
             }
+        } catch (EOFException e) {
+            System.out.println("Friend closed connection");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                objectInputStream.close();
-                objectOutputStream.close();
-                chatConnection.socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 

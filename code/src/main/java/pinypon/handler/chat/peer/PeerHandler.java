@@ -100,11 +100,12 @@ final public class PeerHandler extends Thread implements ListeningThread {
     }
 
     @Override
-    public void notifyThreadComplete(Object object) {
+    public synchronized void notifyThreadComplete(Object object) {
         if (object == null) {
             return;
         }
         Protocol protocol = (Protocol) object;
+        protocol.kill();
         connectionsProtocols.remove(protocol.getChatConnection().getId());
     }
 }

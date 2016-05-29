@@ -6,16 +6,16 @@ import pinypon.protocol.chat.Message;
 import pinypon.user.Friend;
 import pinypon.user.User;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class Protocol extends NotifyingThread {
     private final ChatConnection chatConnection;
     private final User user;
     private final Friend friend;
-    private boolean interrupted = false;
+    private boolean kill = false;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
 
@@ -33,11 +33,11 @@ public class Protocol extends NotifyingThread {
     @Override
     public void doRun() {
         try {
-            while (!interrupted) {
+            while (!kill) {
                 Object object = objectInputStream.readObject();
                 if (object instanceof Message) {
                     Message message = (Message) object;
-                    switch(message.getType()) {
+                    switch (message.getType()) {
                         case Message.END_MESSAGE:
                             return;
                         default:
@@ -45,6 +45,8 @@ public class Protocol extends NotifyingThread {
                     }
                 }
             }
+        } catch (EOFException e) {
+            System.out.println("Friend listener closed connection");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -68,7 +70,7 @@ public class Protocol extends NotifyingThread {
 
     public synchronized void kill() {
         try {
-            this.interrupted = true;
+            this.kill = true;
             super.interrupt();
             this.objectOutputStream.close();
             this.objectInputStream.close();

@@ -52,30 +52,27 @@ final public class IPeerHandler implements ListeningThread {
     public synchronized void kill() {
         kill = true;
         establishedConnection.forEach((connectionId, protocol) -> {
+            protocol.kill();
             try {
-                protocol.kill();
                 protocol.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         });
     }
 
     @Override
     public synchronized void notifyThreadComplete(Object object) {
+        if (object == null) {
+            return;
+        }
+        Protocol protocol = (Protocol) object;
+        if (establishedConnection.remove(protocol.getFriend().getEncodedPublicKey()) == null) {
+            throw new IllegalStateException("Expecting protocol removal");
+        }
+        protocol.kill();
         try {
-            if (object == null) {
-                return;
-            }
-            Protocol protocol = (Protocol) object;
-            if (establishedConnection.remove(protocol.getFriend().getEncodedPublicKey()) == null) {
-                throw new IllegalStateException("Expecting protocol removal");
-            }
-            protocol.kill();
             protocol.join();
         } catch (InterruptedException e) {
-            System.err.println("Could not cleanup thread");
-            e.printStackTrace();
         }
     }
 }
