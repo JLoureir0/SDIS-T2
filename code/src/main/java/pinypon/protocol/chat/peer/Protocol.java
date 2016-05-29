@@ -75,20 +75,21 @@ final public class Protocol extends NotifyingThread {
         }
     }
 
-    public ChatConnection getChatConnection() {
+    public synchronized ChatConnection getChatConnection() {
         return chatConnection;
     }
 
     @Override
-    protected void notifyListener() {
+    protected synchronized void notifyListener() {
         this.listeningThread.notifyThreadComplete(this);
     }
 
-    public void kill() {
+    public synchronized void kill() {
         try {
             objectOutputStream.writeObject(
                     new Message(Message.END_MESSAGE, null, this.user.getEncodedPublicKey())
             );
+            objectOutputStream.flush();
             this.kill = true;
             super.interrupt();
             objectInputStream.close();

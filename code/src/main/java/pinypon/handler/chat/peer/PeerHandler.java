@@ -12,8 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 final public class PeerHandler extends Thread implements ListeningThread {
 
-    final private User user;
     final private static long CONNECTIONS_COUNTER_START = Long.MIN_VALUE;
+    final private User user;
     final private LinkedBlockingQueue<Message> messagesToPrint;
     final private LinkedBlockingQueue<ChatConnection> queuedConnections;
     final private HashMap<Long, Protocol> connectionsProtocols;
@@ -68,7 +68,7 @@ final public class PeerHandler extends Thread implements ListeningThread {
         protocol.start();
     }
 
-    public void put(ChatConnection chatConnection) {
+    public synchronized void put(ChatConnection chatConnection) {
         try {
             this.queuedConnections.put(chatConnection);
         } catch (InterruptedException e) {
@@ -76,7 +76,7 @@ final public class PeerHandler extends Thread implements ListeningThread {
         }
     }
 
-    public void kill() {
+    public synchronized void kill() {
         interrupted = true;
         super.interrupt();
         try {
@@ -95,7 +95,7 @@ final public class PeerHandler extends Thread implements ListeningThread {
         });
     }
 
-    public LinkedBlockingQueue<Message> getMessagesToPrint() {
+    public synchronized LinkedBlockingQueue<Message> getMessagesToPrint() {
         return messagesToPrint;
     }
 

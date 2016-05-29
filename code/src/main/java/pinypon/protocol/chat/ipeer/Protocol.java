@@ -7,16 +7,17 @@ import pinypon.user.Friend;
 import pinypon.user.User;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Protocol extends NotifyingThread {
-    private final LinkedBlockingQueue<String> messagesToSend;
     private final ChatConnection chatConnection;
     private final User user;
     private final Friend friend;
     private boolean interrupted = false;
     private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream objectInputStream;
 
     public Protocol(User user, Friend friend, ChatConnection chatConnection) throws IOException {
         this.user = user;
@@ -25,55 +26,59 @@ public class Protocol extends NotifyingThread {
             throw new IllegalArgumentException("bad chatConnection");
         }
         this.chatConnection = chatConnection;
-        this.messagesToSend = new LinkedBlockingQueue<>();
         this.objectOutputStream = new ObjectOutputStream(this.chatConnection.socket.getOutputStream());
+        this.objectInputStream = new ObjectInputStream(this.chatConnection.socket.getInputStream());
     }
 
     @Override
     public void doRun() {
         try {
             while (!interrupted) {
-                String messageString = this.messagesToSend.take();
-                if (messageString == null) {
-                    return;
+                Object object = objectInputStream.readObject();
+                if (object instanceof Message) {
+                    Message message = (Message) object;
+                    switch(message.getType()) {
+                        case Message.END_MESSAGE:
+                            return;
+                        default:
+                            throw new IllegalStateException("Bad Message");
+                    }
                 }
-                Message message = new Message(Message.MESSAGE, messageString, user.getEncodedPublicKey());
-                objectOutputStream.writeObject(message);
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    public void add(String message) throws InterruptedException {
-        this.messagesToSend.put(message);
+    public synchronized void add(String message) throws InterruptedException, IOException {
+        objectOutputStream.writeObject(new Message(Message.MESSAGE, message, user.getEncodedPublicKey()));
+        objectOutputStream.flush();
     }
 
-    public ChatConnection getChatConnection() {
+    public synchronized ChatConnection getChatConnection() {
         return chatConnection;
     }
 
     @Override
-    protected void notifyListener() {
+    protected synchronized void notifyListener() {
         this.listeningThread.notifyThreadComplete(this);
     }
 
-    public void kill() {
+    public synchronized void kill() {
         try {
             this.interrupted = true;
             super.interrupt();
-            messagesToSend.clear();
-            messagesToSend.add(null);
             this.objectOutputStream.close();
+            this.objectInputStream.close();
             this.chatConnection.socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public Friend getFriend() {
+    public synchronized Friend getFriend() {
         return friend;
     }
 }

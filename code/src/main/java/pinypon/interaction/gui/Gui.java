@@ -30,7 +30,6 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -486,6 +485,32 @@ public class Gui extends Application {
         friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
     }
 
+    private void initWorkerThreads() throws IOException {
+        final ChatListener chatListener = new ChatListener(this.user, this.port);
+        final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
+        this.iPeerHandler = new IPeerHandler();
+        chatListener.start();
+        guiMessagePrinter.start();
+
+        this.stage.setOnCloseRequest(windowEvent -> {
+            try {
+                if (this.user != null) {
+                    this.user.store();
+                }
+                Platform.exit();
+                chatListener.kill();
+                guiMessagePrinter.kill();
+                this.iPeerHandler.kill();
+                guiMessagePrinter.join();
+                chatListener.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                System.exit(0);
+            }
+        });
+    }
+
     private static class ActiveFriendTextArea {
         private TextArea textArea;
         private Friend friend;
@@ -512,31 +537,5 @@ public class Gui extends Application {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
         }
-    }
-
-    private void initWorkerThreads() throws IOException {
-            final ChatListener chatListener = new ChatListener(this.user, this.port);
-            final GuiMessagePrinter guiMessagePrinter = new GuiMessagePrinter(this, chatListener.getPeerHandler().getMessagesToPrint());
-            this.iPeerHandler = new IPeerHandler();
-            chatListener.start();
-            guiMessagePrinter.start();
-
-            this.stage.setOnCloseRequest(windowEvent -> {
-                try {
-                    if (this.user != null) {
-                        this.user.store();
-                    }
-                    Platform.exit();
-                    chatListener.kill();
-                    guiMessagePrinter.kill();
-                    this.iPeerHandler.kill();
-                    guiMessagePrinter.join();
-                    chatListener.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } finally {
-                    System.exit(0);
-                }
-            });
     }
 }
