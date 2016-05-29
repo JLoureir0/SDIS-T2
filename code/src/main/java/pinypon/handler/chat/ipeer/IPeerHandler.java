@@ -9,6 +9,7 @@ import pinypon.user.User;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 final public class IPeerHandler implements ListeningThread {
@@ -21,21 +22,30 @@ final public class IPeerHandler implements ListeningThread {
         this.establishedConnection = new HashMap<>();
     }
 
-    public synchronized boolean sendMessage(User user, Friend friend, String message) throws IOException, InterruptedException {
-        Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
-        if (protocol == null) {
-            // TODO
-            // public key, call a dht function that returns an ipaddress and a port of the listening peer
-            String ipAddressString = "192.168.1.73";
-            int port = 54321;
-            InetAddress ipAddress = InetAddress.getByName(ipAddressString);
-            // return false if is offline
-            protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
-            establishedConnection.put(friend.getEncodedPublicKey(), protocol);
-            protocol.start();
+    public synchronized boolean sendMessage(User user, Friend friend, String message) {
+        try {
+            Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
+            if (protocol == null) {
+                // TODO
+                // public key, call a dht function that returns an ipaddress and a port of the listening peer
+                String ipAddressString = "192.168.1.73";
+                int port = 54321;
+                InetAddress ipAddress = InetAddress.getByName(ipAddressString);
+                // return false if is offline
+                protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
+                establishedConnection.put(friend.getEncodedPublicKey(), protocol);
+                protocol.start();
+            }
+            protocol.add(message);
+            return true;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        protocol.add(message);
-        return true;
+        return false;
     }
 
     public synchronized void kill() {
@@ -52,14 +62,18 @@ final public class IPeerHandler implements ListeningThread {
 
     @Override
     public synchronized void notifyThreadComplete(Object object) {
-        if (object == null) {
-            return;
-        }
-        Protocol protocol = (Protocol) object;
-        establishedConnection.remove(protocol.getFriend().getEncodedPublicKey());
         try {
-            protocol.getChatConnection().socket.close();
-        } catch (IOException e) {
+            if (object == null) {
+            return;
+            }
+            Protocol protocol = (Protocol) object;
+            if (establishedConnection.remove(protocol.getFriend().getEncodedPublicKey()) == null) {
+                throw new IllegalStateException("Expecting protocol removal");
+            }
+            protocol.kill();
+            protocol.join();
+        } catch (InterruptedException e) {
+            System.err.println("Could not cleanup thread");
             e.printStackTrace();
         }
     }

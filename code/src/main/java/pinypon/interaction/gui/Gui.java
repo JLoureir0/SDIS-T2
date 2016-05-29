@@ -371,7 +371,6 @@ public class Gui extends Application {
             TextArea activeTextArea = this.activeFriendTextArea.getTextArea();
             activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
             this.messageField.clear();
-            User user = this.user;
             Friend friend = this.activeFriendTextArea.getFriend();
             this.iPeerHandler.sendMessage(this.user, friend, message);
         }

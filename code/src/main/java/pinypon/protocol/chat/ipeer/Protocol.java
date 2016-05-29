@@ -16,8 +16,9 @@ public class Protocol extends NotifyingThread {
     private final User user;
     private final Friend friend;
     private boolean interrupted = false;
+    private ObjectOutputStream objectOutputStream;
 
-    public Protocol(User user, Friend friend, ChatConnection chatConnection) {
+    public Protocol(User user, Friend friend, ChatConnection chatConnection) throws IOException {
         this.user = user;
         this.friend = friend;
         if (chatConnection == null) {
@@ -25,23 +26,23 @@ public class Protocol extends NotifyingThread {
         }
         this.chatConnection = chatConnection;
         this.messagesToSend = new LinkedBlockingQueue<>();
+        this.objectOutputStream = new ObjectOutputStream(this.chatConnection.socket.getOutputStream());
     }
 
     @Override
     public void doRun() {
         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(this.chatConnection.socket.getOutputStream());
             while (!interrupted) {
                 String messageString = this.messagesToSend.take();
                 if (messageString == null) {
-                    throw new InterruptedException();
+                    return;
                 }
                 Message message = new Message(Message.MESSAGE, messageString, user.getEncodedPublicKey());
                 objectOutputStream.writeObject(message);
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -60,14 +61,16 @@ public class Protocol extends NotifyingThread {
     }
 
     public void kill() {
-        this.interrupted = true;
-        super.interrupt();
         try {
+            this.interrupted = true;
+            super.interrupt();
+            messagesToSend.clear();
+            messagesToSend.add(null);
+            this.objectOutputStream.close();
             this.chatConnection.socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        messagesToSend.add(null);
     }
 
     public Friend getFriend() {
