@@ -27,12 +27,13 @@ final public class IPeerHandler implements ListeningThread {
             Protocol protocol = establishedConnection.get(friend.getEncodedPublicKey());
             if (protocol == null) {
                 // TODO
-                // public key, call a dht function that returns an ipaddress and a port of the listening peer
+                // public key, call a dht function that returns an ipAddress and a port of the listening peer
                 String ipAddressString = "192.168.1.73";
                 int port = 54321;
                 InetAddress ipAddress = InetAddress.getByName(ipAddressString);
                 // return false if is offline
                 protocol = new Protocol(user, friend, new ChatConnection(new Socket(ipAddress, port)));
+                protocol.addListener(this);
                 establishedConnection.put(friend.getEncodedPublicKey(), protocol);
                 protocol.start();
             }
@@ -64,7 +65,7 @@ final public class IPeerHandler implements ListeningThread {
     public synchronized void notifyThreadComplete(Object object) {
         try {
             if (object == null) {
-            return;
+                return;
             }
             Protocol protocol = (Protocol) object;
             if (establishedConnection.remove(protocol.getFriend().getEncodedPublicKey()) == null) {
