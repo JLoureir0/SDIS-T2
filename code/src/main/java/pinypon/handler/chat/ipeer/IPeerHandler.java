@@ -56,7 +56,7 @@ final public class IPeerHandler implements ListeningThread {
             return;
         }
         Protocol protocol = (Protocol) object;
-        establishedConnection.remove(protocol.getChatConnection().getId());
+        establishedConnection.remove(protocol.getFriend().getEncodedPublicKey());
     }
 }
 

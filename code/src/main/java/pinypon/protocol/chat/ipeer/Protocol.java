@@ -64,4 +64,8 @@ public class Protocol extends NotifyingThread {
         super.interrupt();
         messagesToSend.add(null);
     }
+
+    public Friend getFriend() {
+        return friend;
+    }
 }
