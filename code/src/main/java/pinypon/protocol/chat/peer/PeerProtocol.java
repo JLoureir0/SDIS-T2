@@ -21,8 +21,9 @@ final public class PeerProtocol extends NotifyingThread {
     private final ChatConnection chatConnection;
     private boolean kill = false;
     private final Gui gui;
+    private final String encodedFriendPublicKey;
 
-    public PeerProtocol(User user, ChatConnection chatConnection, Gui gui) throws IOException {
+    public PeerProtocol(User user, ChatConnection chatConnection, Gui gui, Object firstMessage, String encodedFriendPublicKey) throws IOException, ClassNotFoundException {
         if (chatConnection == null) {
             throw new IllegalArgumentException("bad chatConnection");
         }
@@ -32,6 +33,9 @@ final public class PeerProtocol extends NotifyingThread {
         this.objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
         this.user = user;
         this.gui = gui;
+        this.encodedFriendPublicKey = encodedFriendPublicKey;
+
+        this.messageHandler(firstMessage);
     }
 
     @Override
@@ -40,23 +44,7 @@ final public class PeerProtocol extends NotifyingThread {
             boolean reachedFinalState = false;
 
             while (!reachedFinalState && !kill) {
-
-                Object objectReceived = objectInputStream.readObject();
-                if (objectReceived instanceof Message) {
-                    Message message = (Message) objectReceived;
-                    switch (message.getType()) {
-                        case Message.MESSAGE:
-                            Platform.runLater(()->gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
-                            break;
-                        case Message.FRIEND_REQUEST:
-                            Platform.runLater(()->gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
-                            break;
-                        default:
-                            throw new IllegalStateException("Unknown header type");
-                    }
-                } else {
-                    throw new IllegalStateException("Illegal Object");
-                }
+                messageHandler(objectInputStream.readObject());
             }
         } catch (EOFException e) {
             System.out.println("Friend closed connection");
@@ -67,12 +55,31 @@ final public class PeerProtocol extends NotifyingThread {
         }
     }
 
+    private void messageHandler(Object objectReceived) throws IOException, ClassNotFoundException {
+        if (objectReceived instanceof Message) {
+            Message message = (Message) objectReceived;
+            switch (message.getType()) {
+                case Message.MESSAGE:
+                    Platform.runLater(()->gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
+                    break;
+                case Message.FRIEND_REQUEST:
+                    Platform.runLater(()->gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown header type");
+            }
+        } else {
+            throw new IllegalStateException("Illegal Object");
+        }
+    }
+
     public synchronized ChatConnection getChatConnection() {
         return chatConnection;
     }
 
     public synchronized void send(Message message) throws InterruptedException, IOException {
         objectOutputStream.writeObject(message);
+        System.out.println(message.getType());
         objectOutputStream.flush();
     }
 
@@ -95,5 +102,9 @@ final public class PeerProtocol extends NotifyingThread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getEncodedFriendPublicKey() {
+        return encodedFriendPublicKey;
     }
 }
