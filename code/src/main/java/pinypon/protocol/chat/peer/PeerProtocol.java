@@ -2,6 +2,7 @@ package pinypon.protocol.chat.peer;
 
 import javafx.application.Platform;
 import pinypon.connection.chat.ChatConnection;
+import pinypon.handler.chat.peer.PeerHandler;
 import pinypon.interaction.gui.Gui;
 import pinypon.protocol.NotifyingThread;
 import pinypon.protocol.chat.Message;
@@ -11,7 +12,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
 
 final public class PeerProtocol extends NotifyingThread {
 
@@ -19,11 +19,11 @@ final public class PeerProtocol extends NotifyingThread {
     private final ObjectInputStream objectInputStream;
     private final ObjectOutputStream objectOutputStream;
     private final ChatConnection chatConnection;
-    private boolean kill = false;
     private final Gui gui;
     private final String encodedFriendPublicKey;
+    private boolean kill = false;
 
-    public PeerProtocol(User user, ChatConnection chatConnection, Gui gui, Object firstMessage, String encodedFriendPublicKey) throws IOException, ClassNotFoundException {
+    public PeerProtocol(User user, ChatConnection chatConnection, Gui gui, PeerHandler peerHandler) throws IOException, ClassNotFoundException {
         if (chatConnection == null) {
             throw new IllegalArgumentException("bad chatConnection");
         }
@@ -31,11 +31,15 @@ final public class PeerProtocol extends NotifyingThread {
 
         this.objectInputStream = new ObjectInputStream(chatConnection.socket.getInputStream());
         this.objectOutputStream = new ObjectOutputStream(chatConnection.socket.getOutputStream());
+        Object firstMessage = objectInputStream.readObject();
+        Message message = (Message) firstMessage;
         this.user = user;
         this.gui = gui;
-        this.encodedFriendPublicKey = encodedFriendPublicKey;
+        this.encodedFriendPublicKey = message.getEncodedSenderPublicKey();
+        peerHandler.addConnection(encodedFriendPublicKey,this);
 
         this.messageHandler(firstMessage);
+
     }
 
     @Override
@@ -60,10 +64,10 @@ final public class PeerProtocol extends NotifyingThread {
             Message message = (Message) objectReceived;
             switch (message.getType()) {
                 case Message.MESSAGE:
-                    Platform.runLater(()->gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
+                    Platform.runLater(() -> gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
                     break;
                 case Message.FRIEND_REQUEST:
-                    Platform.runLater(()->gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
+                    Platform.runLater(() -> gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
                     break;
                 default:
                     throw new IllegalStateException("Unknown header type");

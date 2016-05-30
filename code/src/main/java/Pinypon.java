@@ -1,4 +1,3 @@
-import javafx.application.Platform;
 import pinypon.interaction.cli.CLI;
 import pinypon.interaction.gui.Gui;
 

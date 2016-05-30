@@ -411,7 +411,7 @@ public class Gui extends Application {
         dialog.setContentText(messageBody);
 
         Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()){
+        if (result.isPresent()) {
             return result.get();
         }
 

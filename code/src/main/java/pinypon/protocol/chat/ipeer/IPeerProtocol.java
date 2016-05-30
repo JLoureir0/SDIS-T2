@@ -17,10 +17,10 @@ public class IPeerProtocol extends NotifyingThread {
     private final ChatConnection chatConnection;
     private final User user;
     private final Friend friend;
+    private final Gui gui;
     private boolean kill = false;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
-    private final Gui gui;
 
     public IPeerProtocol(User user, Friend friend, ChatConnection chatConnection, Gui gui) throws IOException {
         this.user = user;
@@ -45,10 +45,10 @@ public class IPeerProtocol extends NotifyingThread {
                         case Message.END_MESSAGE:
                             return;
                         case Message.ACCEPT_FRIEND_REQUEST:
-                            Platform.runLater(()->gui.addFriendIPeer(message.getEncodedSenderPublicKey()));
+                            Platform.runLater(() -> gui.addFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
                         case Message.DENY_FRIEND_REQUEST:
-                            Platform.runLater(()->gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey()));
+                            Platform.runLater(() -> gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
                         default:
                             throw new IllegalStateException("Bad Message");

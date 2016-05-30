@@ -55,11 +55,9 @@ final public class PeerHandler extends Thread implements ListeningThread {
 
     private void to_active_connection(ChatConnection chatConnection) throws IOException, InterruptedException, ClassNotFoundException {
 
-        Object firstMessage = new ObjectInputStream(chatConnection.socket.getInputStream()).readObject();
-        Message message = (Message) firstMessage;
 
-        PeerProtocol peerProtocol = new PeerProtocol(this.user, chatConnection, gui, firstMessage, message.getEncodedSenderPublicKey());
-        connectionsProtocols.put(message.getEncodedSenderPublicKey(), peerProtocol);
+
+        PeerProtocol peerProtocol = new PeerProtocol(this.user, chatConnection, gui, this);
 
         peerProtocol.addListener(this);
         peerProtocol.start();
@@ -136,5 +134,9 @@ final public class PeerHandler extends Thread implements ListeningThread {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public void addConnection(String key, PeerProtocol peerProtocol) {
+        connectionsProtocols.put(key, peerProtocol);
     }
 }
