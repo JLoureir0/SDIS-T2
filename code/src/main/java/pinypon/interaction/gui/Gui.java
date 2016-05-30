@@ -437,6 +437,9 @@ public class Gui extends Application {
         }
 
         Friend friend = new Friend("unassigned", friendEncodedPublicKey);
+
+        this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.ACCEPT_FRIEND_REQUEST, null);
+
         this.user.addFriend(friend);
 
         friendsListView.getItems().add(friend);
@@ -449,7 +452,6 @@ public class Gui extends Application {
             friendsListView.getSelectionModel().select(friend);
         }
 
-        this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.ACCEPT_FRIEND_REQUEST, null);
         return true;
     }
 
