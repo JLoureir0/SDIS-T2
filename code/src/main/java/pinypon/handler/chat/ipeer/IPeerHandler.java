@@ -32,7 +32,7 @@ final public class IPeerHandler implements ListeningThread {
             if (IPeerProtocol == null) {
                 // TODO
                 // public key, call a dht function that returns an ipAddress and a port of the listening peer
-                String ipAddressString = "127.0.0.1";
+                String ipAddressString = "192.168.0.14";
                 int port = 44321;
                 InetAddress ipAddress = InetAddress.getByName(ipAddressString);
                 // return false if is offline

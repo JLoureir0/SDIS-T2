@@ -1,5 +1,6 @@
 package pinypon.protocol.chat.ipeer;
 
+import javafx.application.Platform;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.interaction.gui.Gui;
 import pinypon.protocol.NotifyingThread;
@@ -44,10 +45,10 @@ public class IPeerProtocol extends NotifyingThread {
                         case Message.END_MESSAGE:
                             return;
                         case Message.ACCEPT_FRIEND_REQUEST:
-                            this.gui.addFriendIPeer(message.getEncodedSenderPublicKey());
+                            Platform.runLater(()->gui.addFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
                         case Message.DENY_FRIEND_REQUEST:
-                            this.gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey());
+                            Platform.runLater(()->gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
                         default:
                             throw new IllegalStateException("Bad Message");

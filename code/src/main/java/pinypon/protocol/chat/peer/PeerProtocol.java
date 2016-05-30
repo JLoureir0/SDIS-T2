@@ -1,5 +1,6 @@
 package pinypon.protocol.chat.peer;
 
+import javafx.application.Platform;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.interaction.gui.Gui;
 import pinypon.protocol.NotifyingThread;
@@ -45,10 +46,11 @@ final public class PeerProtocol extends NotifyingThread {
                     Message message = (Message) objectReceived;
                     switch (message.getType()) {
                         case Message.MESSAGE:
-                            this.gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody());
+                            Platform.runLater(()->gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
                             break;
                         case Message.FRIEND_REQUEST:
-                            this.gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody());
+                            Platform.runLater(()->gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
+                            break;
                         default:
                             throw new IllegalStateException("Unknown header type");
                     }

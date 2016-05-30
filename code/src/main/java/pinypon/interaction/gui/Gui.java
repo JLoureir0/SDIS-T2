@@ -66,7 +66,6 @@ public class Gui extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-
         List<String> args = this.getParameters().getRaw();
         Parser cliParser = new Parser(args.toArray(new String[args.size()]));
         HashMap<Parser.Option, Object> parsed = cliParser.parse();
@@ -302,7 +301,7 @@ public class Gui extends Application {
         if (message.charAt(0) == '/') {
             String[] filteredMessage = message.split(Defaults.WHITESPACE_REGEX);
             switch (filteredMessage[0]) {
-                case "/send":
+                case "/add":
                     if (filteredMessage.length != 4) {
                         simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: username helloMessage publicKey");
                         throw new IllegalArgumentException("Expecting two more arguments: username publicKey");
@@ -381,13 +380,13 @@ public class Gui extends Application {
         }
         this.user.addFriend(friendToAdd);
 
-        this.friendsListView.getItems().add(friendToAdd);
+        friendsListView.getItems().add(friendToAdd);
         TextArea friendTextArea = createChatTextArea();
         this.friendsTextAreas.putIfAbsent(friendEncodedPublicKey, friendTextArea);
 
         if (user.getFriends().size() == 1) {
             this.activeFriendTextArea.set(friendTextArea, friendToAdd);
-            this.chatBorderPane.setCenter(friendTextArea);
+            chatBorderPane.setCenter(friendTextArea);
             this.friendsListView.getSelectionModel().select(friendToAdd);
         }
 
@@ -430,14 +429,14 @@ public class Gui extends Application {
         Friend friend = new Friend(friendUsername, friendEncodedPublicKey);
         this.user.addFriend(friend);
 
-        this.friendsListView.getItems().add(friend);
+        friendsListView.getItems().add(friend);
         TextArea friendTextArea = createChatTextArea();
         this.friendsTextAreas.putIfAbsent(friendEncodedPublicKey, friendTextArea);
 
         if (user.getFriends().size() == 1) {
             this.activeFriendTextArea.set(friendTextArea, friend);
-            this.chatBorderPane.setCenter(friendTextArea);
-            this.friendsListView.getSelectionModel().select(friend);
+            chatBorderPane.setCenter(friendTextArea);
+            friendsListView.getSelectionModel().select(friend);
         }
 
         this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.ACCEPT_FRIEND_REQUEST, null);
