@@ -438,7 +438,7 @@ public class Gui extends Application {
 
         Friend friend = new Friend("unassigned", friendEncodedPublicKey);
 
-        this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.ACCEPT_FRIEND_REQUEST, null);
+        this.peerHandler.sendMessage(this.user, friend, Message.ACCEPT_FRIEND_REQUEST, null);
 
         this.user.addFriend(friend);
 
