@@ -122,7 +122,7 @@ final public class PeerHandler extends Thread implements ListeningThread {
                 System.out.println("NULL peer proto");
                 return false;
             }
-            peerProtocol.send(new Message(type, message, friendEncodedPublicKey));
+            peerProtocol.send(new Message(type, message, user.getEncodedPublicKey()));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
