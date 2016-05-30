@@ -25,6 +25,7 @@ import pinypon.protocol.chat.Message;
 import pinypon.user.Friend;
 import pinypon.user.User;
 import pinypon.utils.Defaults;
+import pinypon.utils.Tracker;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -577,35 +578,18 @@ public class Gui extends Application {
         postToTracker(ip);
     }
 
-    private static class TrackerRegister {
-        public final String id;
-        public final String ip;
-        public final String port;
-        public final String username;
-
-        public TrackerRegister(String id, String ip, String port, String username) {
-            this.id = id;
-            this.ip = ip;
-            this.port = port;
-            this.username = username;
-        }
-    }
-
     private void postToTracker(String ip) {
         try {
             URL url = new URL("http://192.168.0.14:54321");
             URLConnection con = url.openConnection();
             HttpURLConnection http = (HttpURLConnection)con;
-            http.setRequestMethod("POST"); // PUT is another valid option
+            http.setRequestMethod("POST");
             http.setDoOutput(true);
 
-
             String json = Defaults.gson.toJson(
-                    new TrackerRegister(this.user.getEncodedPublicKey(), ip, Integer.toString(this.port), this.user.getUsername()),
-                    TrackerRegister.class);
+                    new Tracker(this.user.getEncodedPublicKey(), ip, Integer.toString(this.port), this.user.getUsername()),
+                    Tracker.class);
             byte[] out = json.getBytes(Defaults.ENCODING);
-
-            System.out.println(json);
             int length = out.length;
 
             http.setFixedLengthStreamingMode(length);

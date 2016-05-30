@@ -7,11 +7,14 @@ import pinypon.protocol.chat.Message;
 import pinypon.protocol.chat.ipeer.IPeerProtocol;
 import pinypon.user.Friend;
 import pinypon.user.User;
+import pinypon.utils.Defaults;
+import pinypon.utils.Tracker;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.*;
 import java.util.HashMap;
 
 final public class IPeerHandler implements ListeningThread {
@@ -30,12 +33,12 @@ final public class IPeerHandler implements ListeningThread {
         try {
             IPeerProtocol IPeerProtocol = establishedConnection.get(friend.getEncodedPublicKey());
             if (IPeerProtocol == null) {
-                // TODO
-                // public key, call a dht function that returns an ipAddress and a port of the listening peer
-                String ipAddressString = "192.168.0.14";
-                int port = 44321;
-                InetAddress ipAddress = InetAddress.getByName(ipAddressString);
-                // return false if is offline
+                Tracker tracker = getFriendTrackerData(friend.getEncodedPublicKey());
+                if (tracker == null) {
+                    return false;
+                }
+                InetAddress ipAddress = InetAddress.getByName(tracker.ip);
+                int port = Integer.parseInt(tracker.port);
                 IPeerProtocol = new IPeerProtocol(user, friend, new ChatConnection(new Socket(ipAddress, port)), this.gui);
                 IPeerProtocol.addListener(this);
                 establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
@@ -51,6 +54,25 @@ final public class IPeerHandler implements ListeningThread {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private Tracker getFriendTrackerData(String friendEncodedPublicKey) {
+        try {
+            URL url = new URL("http://192.168.0.14:54321/?id=" + friendEncodedPublicKey);
+            URLConnection con = url.openConnection();
+            HttpURLConnection http = (HttpURLConnection)con;
+            http.setRequestMethod("GET");
+            http.setRequestProperty("Content-Type", "application/json");
+            http.connect();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(http.getInputStream()));
+            String in = bufferedReader.readLine();
+            Tracker tracker = Defaults.gson.fromJson(in, Tracker.class);
+            System.out.println(tracker);
+            return tracker;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public synchronized void kill() {
