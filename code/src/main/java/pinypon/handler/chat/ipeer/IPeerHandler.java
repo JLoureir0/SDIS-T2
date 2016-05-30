@@ -44,7 +44,7 @@ final public class IPeerHandler implements ListeningThread {
                 establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
                 IPeerProtocol.start();
             }
-            IPeerProtocol.send(new Message(type, message, friend.getEncodedPublicKey()));
+            IPeerProtocol.send(new Message(type, message, user.getEncodedPublicKey()));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();

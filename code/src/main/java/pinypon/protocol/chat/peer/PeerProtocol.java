@@ -36,7 +36,10 @@ final public class PeerProtocol extends NotifyingThread {
         this.user = user;
         this.gui = gui;
         this.encodedFriendPublicKey = message.getEncodedSenderPublicKey();
+
         peerHandler.addConnection(encodedFriendPublicKey,this);
+
+        System.out.println(encodedFriendPublicKey);
 
         this.messageHandler(firstMessage);
 
