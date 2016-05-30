@@ -4,6 +4,7 @@ import BaseHTTPServer
 import json
 import sqlite3
 import urlparse
+import sys
 
 HOST_NAME = "192.168.0.14"
 
@@ -60,6 +61,9 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 3:
+        HOST_NAME = sys.argv[1]
+        PORT_NUMBER = int(sys.argv[2])
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
     print("Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
