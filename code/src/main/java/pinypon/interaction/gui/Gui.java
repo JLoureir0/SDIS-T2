@@ -309,10 +309,11 @@ public class Gui extends Application {
                         throw new IllegalArgumentException("Expecting at least: publicKey");
                     }
                     try {
-                        if (filteredMessage[2] == null) {
-                            filteredMessage[2] = "Hello there";
+                        String helloText = "Hello There";;
+                        if (filteredMessage.length == 3) {
+                            helloText = filteredMessage[2];
                         }
-                        addFriendRequest(filteredMessage[1], filteredMessage[2]);
+                        addFriendRequest(filteredMessage[1], helloText);
                     } catch (RuntimeException e) {
                         simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid publicKey");
                         throw new IllegalArgumentException("invalid publicKey");
@@ -408,30 +409,34 @@ public class Gui extends Application {
         return true;
     }
 
-    private String AcceptRefuseFriendRequest(String friendEncodedPublicKey, String messageBody) {
+    private boolean AcceptRefuseFriendRequest(String friendEncodedPublicKey, String messageBody) {
 
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Friend Request");
-        dialog.setHeaderText(friendEncodedPublicKey + " wants to add you");
-        dialog.setContentText(messageBody);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Friend Request");
+        alert.setHeaderText(friendEncodedPublicKey + " wants to add you");
+        alert.setContentText(messageBody);
 
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            return result.get();
+        ButtonType yesButton = new ButtonType("Yes");
+        ButtonType noButton = new ButtonType("No");
+
+        alert.getButtonTypes().setAll(yesButton, noButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == yesButton){
+            return true;
         }
-
-        return null;
+        return false;
     }
 
     public synchronized boolean addFriendPeer(String friendEncodedPublicKey, String messageBody) {
 
-        String friendUsername = AcceptRefuseFriendRequest(friendEncodedPublicKey, messageBody);
-        if (friendUsername == null) {
+        boolean accepted = AcceptRefuseFriendRequest(friendEncodedPublicKey, messageBody);
+        if (!accepted) {
             this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.DENY_FRIEND_REQUEST, null);
             return false;
         }
 
-        Friend friend = new Friend(friendUsername, friendEncodedPublicKey);
+        Friend friend = new Friend("unassigned", friendEncodedPublicKey);
         this.user.addFriend(friend);
 
         friendsListView.getItems().add(friend);
