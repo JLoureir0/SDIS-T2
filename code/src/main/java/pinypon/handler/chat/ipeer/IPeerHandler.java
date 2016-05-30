@@ -37,6 +37,7 @@ final public class IPeerHandler implements ListeningThread {
                 if (tracker == null) {
                     return false;
                 }
+                friend.setUsername(tracker.username);
                 InetAddress ipAddress = InetAddress.getByName(tracker.ip);
                 int port = Integer.parseInt(tracker.port);
                 IPeerProtocol = new IPeerProtocol(user, friend, new ChatConnection(new Socket(ipAddress, port)), this.gui);

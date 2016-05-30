@@ -290,6 +290,8 @@ public class Gui extends Application {
 
         this.chatBorderPane.setBottom(this.messageField);
         this.stage.setScene(chatScene);
+
+        this.messageField.requestFocus();
     }
 
     private void messageHandler() throws IOException, InterruptedException {
@@ -299,15 +301,18 @@ public class Gui extends Application {
 
         String message = new String(messageField.getText());
         if (message.charAt(0) == '/') {
-            String[] filteredMessage = message.split(Defaults.WHITESPACE_REGEX);
+            String[] filteredMessage = message.split(Defaults.WHITESPACE_REGEX, 3);
             switch (filteredMessage[0]) {
                 case "/add":
-                    if (filteredMessage.length != 4) {
-                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: username helloMessage publicKey");
-                        throw new IllegalArgumentException("Expecting two more arguments: username publicKey");
+                    if (filteredMessage.length < 2) {
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "expected arguments: publicKey [helloMessage]");
+                        throw new IllegalArgumentException("Expecting at least: publicKey");
                     }
                     try {
-                        addFriendRequest(filteredMessage[1], filteredMessage[2], filteredMessage[3]);
+                        if (filteredMessage[2] == null) {
+                            filteredMessage[2] = "Hello there";
+                        }
+                        addFriendRequest(filteredMessage[1], filteredMessage[2]);
                     } catch (RuntimeException e) {
                         simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "invalid publicKey");
                         throw new IllegalArgumentException("invalid publicKey");
@@ -351,7 +356,7 @@ public class Gui extends Application {
         }
     }
 
-    private void addFriendRequest(String username, String helloMessage, String friendEncodedPublicKey) {
+    private void addFriendRequest(String friendEncodedPublicKey, String helloMessage) {
 
         try {
             new PublicKey(HEX.decode(friendEncodedPublicKey));
@@ -367,7 +372,7 @@ public class Gui extends Application {
             simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "friend already added!");
             return;
         }
-        Friend friend = new Friend(username, friendEncodedPublicKey);
+        Friend friend = new Friend("unassigned", friendEncodedPublicKey);
         this.friendsAwaitingAdd.putIfAbsent(friendEncodedPublicKey, friend);
         this.iPeerHandler.sendMessage(this.user, friend, Message.FRIEND_REQUEST, helloMessage);
         this.messageField.clear();
