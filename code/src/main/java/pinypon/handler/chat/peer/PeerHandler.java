@@ -55,8 +55,6 @@ final public class PeerHandler extends Thread implements ListeningThread {
 
     private void to_active_connection(ChatConnection chatConnection) throws IOException, InterruptedException, ClassNotFoundException {
 
-
-
         PeerProtocol peerProtocol = new PeerProtocol(this.user, chatConnection, gui, this);
 
         peerProtocol.addListener(this);

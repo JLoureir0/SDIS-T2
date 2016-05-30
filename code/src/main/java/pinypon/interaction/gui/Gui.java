@@ -32,14 +32,13 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.*;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.abstractj.kalium.encoders.Encoder.HEX;
 
@@ -549,6 +548,8 @@ public class Gui extends Application {
     }
 
     private void initWorkerThreads() throws IOException {
+
+        registerToTracker();
         final ChatListener chatListener = new ChatListener(this.user, this.port, this);
         this.peerHandler = chatListener.getPeerHandler();
         this.iPeerHandler = new IPeerHandler(this);
@@ -570,6 +571,76 @@ public class Gui extends Application {
             }
         });
     }
+
+    private void registerToTracker() {
+        String ip = getMyIp();
+        postToTracker(ip);
+    }
+
+    private static class TrackerRegister {
+        public final String id;
+        public final String ip;
+        public final String port;
+        public final String username;
+
+        public TrackerRegister(String id, String ip, String port, String username) {
+            this.id = id;
+            this.ip = ip;
+            this.port = port;
+            this.username = username;
+        }
+    }
+
+    private void postToTracker(String ip) {
+        try {
+            URL url = new URL("http://192.168.0.14:54321");
+            URLConnection con = url.openConnection();
+            HttpURLConnection http = (HttpURLConnection)con;
+            http.setRequestMethod("POST"); // PUT is another valid option
+            http.setDoOutput(true);
+
+
+            String json = Defaults.gson.toJson(
+                    new TrackerRegister(this.user.getEncodedPublicKey(), ip, Integer.toString(this.port), this.user.getUsername()),
+                    TrackerRegister.class);
+            byte[] out = json.getBytes(Defaults.ENCODING);
+
+            System.out.println(json);
+            int length = out.length;
+
+            http.setFixedLengthStreamingMode(length);
+            http.setRequestProperty("Content-Type", "application/json");
+            http.connect();
+            OutputStream os = http.getOutputStream();
+            os.write(out);
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getMyIp() {
+        String ip = "";
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp())
+                    continue;
+
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while(addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    ip = addr.getHostAddress();
+                    System.out.println(iface.getDisplayName() + " " + ip);
+                }
+            }
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+        return ip;
+    }
+
 
     private static class ActiveFriendTextArea {
         private TextArea textArea;
