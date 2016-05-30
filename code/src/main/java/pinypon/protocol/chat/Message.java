@@ -13,11 +13,19 @@ public class Message implements Serializable {
     private String encodedSenderPublicKey;
     private int type;
     private String body;
+    private String myUsername = null;
 
     public Message(int type, String body, String encodedSenderPublicKey) {
         this.type = type;
         this.body = body;
         this.encodedSenderPublicKey = encodedSenderPublicKey;
+    }
+
+    public Message(int type, String body, String encodedSenderPublicKey, String myUsername) {
+        this.type = type;
+        this.body = body;
+        this.encodedSenderPublicKey = encodedSenderPublicKey;
+        this.myUsername = myUsername;
     }
 
     public static int getMESSAGE() {
@@ -38,6 +46,10 @@ public class Message implements Serializable {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getMyUsername() {
+        return myUsername;
     }
 
     public String getEncodedSenderPublicKey() {

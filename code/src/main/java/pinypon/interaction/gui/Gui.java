@@ -375,7 +375,7 @@ public class Gui extends Application {
         }
         Friend friend = new Friend("unassigned", friendEncodedPublicKey);
         this.friendsAwaitingAdd.putIfAbsent(friendEncodedPublicKey, friend);
-        this.iPeerHandler.sendMessage(this.user, friend, Message.FRIEND_REQUEST, helloMessage);
+        this.iPeerHandler.sendMessage(this.user, friend, Message.FRIEND_REQUEST, helloMessage, user.getUsername());
         this.messageField.clear();
     }
 
@@ -428,7 +428,7 @@ public class Gui extends Application {
         return false;
     }
 
-    public synchronized boolean addFriendPeer(String friendEncodedPublicKey, String messageBody) {
+    public synchronized boolean addFriendPeer(String friendEncodedPublicKey, String messageBody, String hisUsername) {
 
         boolean accepted = AcceptRefuseFriendRequest(friendEncodedPublicKey, messageBody);
         if (!accepted) {
@@ -436,9 +436,7 @@ public class Gui extends Application {
             return false;
         }
 
-        Friend friend = new Friend("unassigned", friendEncodedPublicKey);
-
-        this.peerHandler.sendMessage(this.user, friend, Message.ACCEPT_FRIEND_REQUEST, null);
+        Friend friend = new Friend(hisUsername, friendEncodedPublicKey);
 
         this.user.addFriend(friend);
 
@@ -451,6 +449,8 @@ public class Gui extends Application {
             chatBorderPane.setCenter(friendTextArea);
             friendsListView.getSelectionModel().select(friend);
         }
+
+        this.peerHandler.sendMessage(this.user, friend, Message.ACCEPT_FRIEND_REQUEST, null);
 
         return true;
     }

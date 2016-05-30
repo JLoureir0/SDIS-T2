@@ -57,6 +57,34 @@ final public class IPeerHandler implements ListeningThread {
         return false;
     }
 
+    public synchronized boolean sendMessage(User user, Friend friend, int type, String message, String username) {
+        try {
+            IPeerProtocol IPeerProtocol = establishedConnection.get(friend.getEncodedPublicKey());
+            if (IPeerProtocol == null) {
+                Tracker tracker = getFriendTrackerData(friend.getEncodedPublicKey());
+                if (tracker == null) {
+                    return false;
+                }
+                friend.setUsername(tracker.username);
+                InetAddress ipAddress = InetAddress.getByName(tracker.ip);
+                int port = Integer.parseInt(tracker.port);
+                IPeerProtocol = new IPeerProtocol(user, friend, new ChatConnection(new Socket(ipAddress, port)), this.gui);
+                IPeerProtocol.addListener(this);
+                establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
+                IPeerProtocol.start();
+            }
+            IPeerProtocol.send(new Message(type, message, user.getEncodedPublicKey(), username));
+            return true;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Tracker getFriendTrackerData(String friendEncodedPublicKey) {
         try {
             URL url = new URL("http://192.168.0.14:54321/?id=" + friendEncodedPublicKey);

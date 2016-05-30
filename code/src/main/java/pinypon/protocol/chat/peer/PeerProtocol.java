@@ -70,7 +70,7 @@ final public class PeerProtocol extends NotifyingThread {
                     Platform.runLater(() -> gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
                     break;
                 case Message.FRIEND_REQUEST:
-                    Platform.runLater(() -> gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody()));
+                    Platform.runLater(() -> gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody(), message.getMyUsername()));
                     break;
                 default:
                     throw new IllegalStateException("Unknown header type");
