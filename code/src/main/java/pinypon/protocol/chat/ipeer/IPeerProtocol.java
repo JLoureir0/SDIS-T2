@@ -12,6 +12,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.PublicKey;
 
 public class IPeerProtocol extends NotifyingThread {
     private final ChatConnection chatConnection;
@@ -42,12 +43,10 @@ public class IPeerProtocol extends NotifyingThread {
                 if (object instanceof Message) {
                     Message message = (Message) object;
                     switch (message.getType()) {
-                        case Message.END_MESSAGE:
-                            return;
-                        case Message.ACCEPT_FRIEND_REQUEST:
+                        case Message.ACCEPTED_FRIEND_REQUEST:
                             Platform.runLater(() -> gui.addFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
-                        case Message.DENY_FRIEND_REQUEST:
+                        case Message.DENIED_FRIEND_REQUEST:
                             Platform.runLater(() -> gui.refusedAddFriendIPeer(message.getEncodedSenderPublicKey()));
                             break;
                         default:

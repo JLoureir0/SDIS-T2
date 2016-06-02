@@ -1,5 +1,8 @@
 package pinypon.handler.chat.peer;
 
+import org.abstractj.kalium.crypto.Box;
+import org.abstractj.kalium.crypto.Random;
+import org.abstractj.kalium.encoders.Encoder;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.interaction.gui.Gui;
 import pinypon.protocol.ListeningThread;
@@ -13,6 +16,8 @@ import java.io.ObjectInputStream;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import static org.abstractj.kalium.NaCl.Sodium.NONCE_BYTES;
 
 final public class PeerHandler extends Thread implements ListeningThread {
 
@@ -103,7 +108,11 @@ final public class PeerHandler extends Thread implements ListeningThread {
             if (peerProtocol == null) {
                 return false;
             }
-            peerProtocol.send(new Message(type, message, user.getEncodedPublicKey()));
+            Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+            String encodedNonce = Encoder.HEX.encode(nonce);
+            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+            peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -122,7 +131,11 @@ final public class PeerHandler extends Thread implements ListeningThread {
                 System.out.println("NULL peer proto");
                 return false;
             }
-            peerProtocol.send(new Message(type, message, user.getEncodedPublicKey()));
+            Box cryptoBox = new Box(friendEncodedPublicKey, user.getEncodedPrivateKey(), Encoder.HEX);
+            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+            String encodedNonce = Encoder.HEX.encode(nonce);
+            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+            peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friendEncodedPublicKey, encodedNonce));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();

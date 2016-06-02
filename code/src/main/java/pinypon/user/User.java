@@ -72,6 +72,10 @@ public final class User extends Entity {
         return this.friends.put(friend.getEncodedPublicKey(), friend);
     }
 
+    public String getEncodedPrivateKey() {
+        return encodedPrivateKey;
+    }
+
     public boolean store() {
         if (this.jsonPath == null) {
             return false;

@@ -446,7 +446,7 @@ public class Gui extends Application {
 
         boolean accepted = AcceptRefuseFriendRequest(friendEncodedPublicKey, messageBody);
         if (!accepted) {
-            this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.DENY_FRIEND_REQUEST, null);
+            this.peerHandler.sendMessage(this.user, friendEncodedPublicKey, Message.DENIED_FRIEND_REQUEST, null);
             return false;
         }
 
@@ -464,7 +464,7 @@ public class Gui extends Application {
             friendsListView.getSelectionModel().select(friend);
         }
 
-        this.peerHandler.sendMessage(this.user, friend, Message.ACCEPT_FRIEND_REQUEST, null);
+        this.peerHandler.sendMessage(this.user, friend, Message.ACCEPTED_FRIEND_REQUEST, null);
 
         return true;
     }

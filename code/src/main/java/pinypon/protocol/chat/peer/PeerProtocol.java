@@ -97,10 +97,6 @@ final public class PeerProtocol extends NotifyingThread {
 
     public synchronized void kill() {
         try {
-            objectOutputStream.writeObject(
-                    new Message(Message.END_MESSAGE, null, this.user.getEncodedPublicKey())
-            );
-            objectOutputStream.flush();
             this.kill = true;
             super.interrupt();
             objectInputStream.close();

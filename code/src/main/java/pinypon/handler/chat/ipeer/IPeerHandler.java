@@ -1,5 +1,8 @@
 package pinypon.handler.chat.ipeer;
 
+import org.abstractj.kalium.crypto.Box;
+import org.abstractj.kalium.crypto.Random;
+import org.abstractj.kalium.encoders.Encoder;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.interaction.gui.Gui;
 import pinypon.protocol.ListeningThread;
@@ -13,9 +16,10 @@ import pinypon.utils.Tracker;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.*;
 import java.util.HashMap;
+
+import static org.abstractj.kalium.NaCl.Sodium.NONCE_BYTES;
 
 final public class IPeerHandler implements ListeningThread {
 
@@ -49,7 +53,11 @@ final public class IPeerHandler implements ListeningThread {
                 establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
                 IPeerProtocol.start();
             }
-            IPeerProtocol.send(new Message(type, message, user.getEncodedPublicKey()));
+            Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+            String encodedNonce = Encoder.HEX.encode(nonce);
+            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+            IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -77,7 +85,12 @@ final public class IPeerHandler implements ListeningThread {
                 establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
                 IPeerProtocol.start();
             }
-            IPeerProtocol.send(new Message(type, message, user.getEncodedPublicKey(), username));
+
+            Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+            String encodedNonce = Encoder.HEX.encode(nonce);
+            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+            IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce, username));
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
