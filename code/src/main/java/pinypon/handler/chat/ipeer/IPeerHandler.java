@@ -21,11 +21,15 @@ final public class IPeerHandler implements ListeningThread {
 
     final private Gui gui;
     final private HashMap<String, IPeerProtocol> establishedConnection;
+    final private String trackerIp;
+    final private int trackerPort;
 
     private boolean kill = false;
 
-    public IPeerHandler(Gui gui) throws IOException {
+    public IPeerHandler(Gui gui, String trackerIp, int trackerPort) throws IOException {
         this.gui = gui;
+        this.trackerIp = trackerIp;
+        this.trackerPort = trackerPort;
         this.establishedConnection = new HashMap<>();
     }
 
@@ -33,13 +37,13 @@ final public class IPeerHandler implements ListeningThread {
         try {
             IPeerProtocol IPeerProtocol = establishedConnection.get(friend.getEncodedPublicKey());
             if (IPeerProtocol == null) {
-                Tracker tracker = getFriendTrackerData(friend.getEncodedPublicKey());
-                if (tracker == null) {
+                Tracker trackerReply = getFriendTrackerData(friend.getEncodedPublicKey());
+                if (trackerReply == null) {
                     return false;
                 }
-                friend.setUsername(tracker.username);
-                InetAddress ipAddress = InetAddress.getByName(tracker.ip);
-                int port = Integer.parseInt(tracker.port);
+                friend.setUsername(trackerReply.username);
+                InetAddress ipAddress = InetAddress.getByName(trackerReply.ip);
+                int port = Integer.parseInt(trackerReply.port);
                 IPeerProtocol = new IPeerProtocol(user, friend, new ChatConnection(new Socket(ipAddress, port)), this.gui);
                 IPeerProtocol.addListener(this);
                 establishedConnection.put(friend.getEncodedPublicKey(), IPeerProtocol);
@@ -87,7 +91,7 @@ final public class IPeerHandler implements ListeningThread {
 
     private Tracker getFriendTrackerData(String friendEncodedPublicKey) {
         try {
-            URL url = new URL("http://192.168.0.14:54321/?id=" + friendEncodedPublicKey);
+            URL url = new URL("http://" + this.trackerIp + ":" + this.trackerPort + "/?id=" + friendEncodedPublicKey);
             URLConnection con = url.openConnection();
             HttpURLConnection http = (HttpURLConnection)con;
             http.setRequestMethod("GET");

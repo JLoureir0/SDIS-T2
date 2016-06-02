@@ -61,6 +61,8 @@ public class Gui extends Application {
     private User user;
     private int port;
     private String userJsonPath;
+    private String trackerIp;
+    private int trackerPort;
     private HashMap<String, Friend> friendsAwaitingAdd = new HashMap<>();
 
     @Override
@@ -74,6 +76,18 @@ public class Gui extends Application {
         Object obj = parsed.get(Parser.Option.PORT);
         if (obj != null) {
             this.port = (int) obj;
+        }
+
+        this.trackerIp = Defaults.TRACKER_IP;
+        obj = parsed.get(Parser.Option.TRACKER_IP);
+        if (obj != null) {
+            this.trackerIp = (String) obj;
+        }
+
+        this.trackerPort = Defaults.TRACKER_PORT;
+        obj = parsed.get(Parser.Option.TRACKER_PORT);
+        if (obj != null) {
+            this.trackerPort = (int) obj;
         }
 
         this.userJsonPath = Defaults.USER_JSON_PATH;
@@ -565,7 +579,7 @@ public class Gui extends Application {
         registerToTracker();
         final ChatListener chatListener = new ChatListener(this.user, this.port, this);
         this.peerHandler = chatListener.getPeerHandler();
-        this.iPeerHandler = new IPeerHandler(this);
+        this.iPeerHandler = new IPeerHandler(this, this.trackerIp, this.trackerPort);
         chatListener.start();
 
         this.stage.setOnCloseRequest(windowEvent -> {
@@ -592,7 +606,7 @@ public class Gui extends Application {
 
     private void postToTracker(String ip) {
         try {
-            URL url = new URL("http://192.168.0.14:54321");
+            URL url = new URL("http://" + this.trackerIp + ":" + this.trackerPort);
             URLConnection con = url.openConnection();
             HttpURLConnection http = (HttpURLConnection)con;
             http.setRequestMethod("POST");
