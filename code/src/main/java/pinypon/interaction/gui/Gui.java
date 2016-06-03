@@ -380,7 +380,7 @@ public class Gui extends Application {
                     writeToActiveTextArea(this.user.getEncodedPublicKey());
                     break;
                 default:
-                    simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "Bad option");
+                    simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "/his -> publicKey(id) of friend\n/me -> my publicKey(id)\n/id -> my publicKey(id)\n/add publicKey [message]");
                     throw new IllegalArgumentException("Bad option");
             }
         } else {
@@ -431,7 +431,7 @@ public class Gui extends Application {
             this.friendsListView.getSelectionModel().select(friendToAdd);
         }
 
-        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + "accepted friend request");
+        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + " accepted friend request");
         return true;
     }
 
@@ -440,7 +440,7 @@ public class Gui extends Application {
         if (friendToAdd == null) {
             return false;
         }
-        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + "did not accept friend request");
+        simpleAlert(Alert.AlertType.ERROR, "User", "Friend Request", friendToAdd.getUsername() + " did not accept friend request");
         return true;
     }
 
