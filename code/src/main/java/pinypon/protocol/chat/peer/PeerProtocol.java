@@ -1,6 +1,9 @@
 package pinypon.protocol.chat.peer;
 
 import javafx.application.Platform;
+import org.abstractj.kalium.crypto.Box;
+import org.abstractj.kalium.crypto.Random;
+import org.abstractj.kalium.encoders.Encoder;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.handler.chat.peer.PeerHandler;
 import pinypon.interaction.gui.Gui;
@@ -12,6 +15,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import static org.abstractj.kalium.NaCl.Sodium.NONCE_BYTES;
 
 final public class PeerProtocol extends NotifyingThread {
 
@@ -65,15 +70,21 @@ final public class PeerProtocol extends NotifyingThread {
     private void messageHandler(Object objectReceived) throws IOException, ClassNotFoundException {
         if (objectReceived instanceof Message) {
             Message message = (Message) objectReceived;
-            switch (message.getType()) {
-                case Message.MESSAGE:
-                    Platform.runLater(() -> gui.writeToTextArea(message.getEncodedSenderPublicKey(), message.getBody()));
-                    break;
-                case Message.FRIEND_REQUEST:
-                    Platform.runLater(() -> gui.addFriendPeer(message.getEncodedSenderPublicKey(), message.getBody(), message.getMyUsername()));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown header type");
+
+            if (message.getBody() != null && message.getNonce() != null) {
+                Box cryptoBox = new Box(message.getEncodedSenderPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+
+                String messageBody = new String(cryptoBox.decrypt(Encoder.HEX.decode(message.getNonce()), Encoder.HEX.decode(message.getBody())));
+                switch (message.getType()) {
+                    case Message.MESSAGE:
+                        Platform.runLater(() -> gui.writeToTextArea(message.getEncodedSenderPublicKey(), messageBody));
+                        break;
+                    case Message.FRIEND_REQUEST:
+                        Platform.runLater(() -> gui.addFriendPeer(message.getEncodedSenderPublicKey(), messageBody, message.getMyUsername()));
+                        break;
+                    default:
+                        throw new IllegalStateException("Unknown header type");
+                }
             }
         } else {
             throw new IllegalStateException("Illegal Object");

@@ -108,11 +108,15 @@ final public class PeerHandler extends Thread implements ListeningThread {
             if (peerProtocol == null) {
                 return false;
             }
-            Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
-            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
-            String encodedNonce = Encoder.HEX.encode(nonce);
-            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
-            peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+                Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+                byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+                String encodedNonce = Encoder.HEX.encode(nonce);
+            if (message != null) {
+                String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+                peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+            } else {
+                peerProtocol.send(new Message(type, null, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+            }
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -134,8 +138,12 @@ final public class PeerHandler extends Thread implements ListeningThread {
             Box cryptoBox = new Box(friendEncodedPublicKey, user.getEncodedPrivateKey(), Encoder.HEX);
             byte[] nonce = new Random().randomBytes(NONCE_BYTES);
             String encodedNonce = Encoder.HEX.encode(nonce);
-            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
-            peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friendEncodedPublicKey, encodedNonce));
+            if (message != null) {
+                String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+                peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friendEncodedPublicKey, encodedNonce));
+            } else {
+                peerProtocol.send(new Message(type, null, user.getEncodedPublicKey(), friendEncodedPublicKey, encodedNonce));
+            }
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
