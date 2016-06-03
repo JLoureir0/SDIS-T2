@@ -56,8 +56,13 @@ final public class IPeerHandler implements ListeningThread {
             Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
             byte[] nonce = new Random().randomBytes(NONCE_BYTES);
             String encodedNonce = Encoder.HEX.encode(nonce);
-            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
-            IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+            if (message != null) {
+                String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+                IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+            } else {
+                IPeerProtocol.send(new Message(type, null, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));
+            }
+
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -89,8 +94,13 @@ final public class IPeerHandler implements ListeningThread {
             Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
             byte[] nonce = new Random().randomBytes(NONCE_BYTES);
             String encodedNonce = Encoder.HEX.encode(nonce);
-            String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
-            IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce, username));
+            if (message != null) {
+                String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
+                IPeerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce, username));
+            } else {
+                IPeerProtocol.send(new Message(type, null, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce, username));
+            }
+
             return true;
         } catch (InterruptedException e) {
             e.printStackTrace();
