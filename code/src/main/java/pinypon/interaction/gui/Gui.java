@@ -2,6 +2,7 @@ package pinypon.interaction.gui;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -265,17 +266,18 @@ public class Gui extends Application {
                     protected void updateItem(Friend item, boolean empty) {
                         super.updateItem(item, empty);
 
-                        if(item != null)
+                        if(item != null) {
                             setText(item.getUsername());
-
-                        if(item.hasNotification()) {
-                            if(!getStyleClass().contains("notification")) {
-                                getStyleClass().add("notification");
+                            if(item.hasNotification()) {
+                                if(!getStyleClass().contains("notification")) {
+                                    getStyleClass().add("notification");
+                                }
+                            }
+                            else {
+                                getStyleClass().remove("notification");
                             }
                         }
-                        else {
-                            getStyleClass().remove("notification");
-                        }
+
                     }
                 };
                 return cell;
@@ -303,9 +305,14 @@ public class Gui extends Application {
             }
         }
         friendsListView.getSelectionModel().selectedItemProperty().addListener((observable, OldFriend, newFriend) -> {
-            TextArea friendTextArea = this.friendsTextAreas.get(newFriend.getEncodedPublicKey());
-            this.activeFriendTextArea.set(friendTextArea, newFriend);
-            this.chatBorderPane.setCenter(friendTextArea);
+            if(newFriend != null) {
+                newFriend.setNotificationOff();
+                redrawListView();
+
+                TextArea friendTextArea = this.friendsTextAreas.get(newFriend.getEncodedPublicKey());
+                this.activeFriendTextArea.set(friendTextArea, newFriend);
+                this.chatBorderPane.setCenter(friendTextArea);
+            }
         });
         if (firstFriend != null) {
             TextArea firstFriendTextArea = this.friendsTextAreas.get(firstFriend.getEncodedPublicKey());
@@ -381,7 +388,6 @@ public class Gui extends Application {
             activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
             this.messageField.clear();
             Friend friend = this.activeFriendTextArea.getFriend();
-            friend.setNotificationOff();
             this.iPeerHandler.sendMessage(this.user, friend, Message.MESSAGE, message);
         }
     }
@@ -587,6 +593,7 @@ public class Gui extends Application {
         }
         Friend friend = this.user.getFriend(encodedPublicKey);
         friend.setNotificationOn();
+        redrawListView();
         friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
     }
 
@@ -694,5 +701,13 @@ public class Gui extends Application {
             this.usernameField = usernameField;
             this.passwordField = passwordField;
         }
+    }
+
+    private void redrawListView() {
+        ObservableList<Friend> friendsTemp= friendsListView.getItems();
+        Friend selected = friendsListView.getSelectionModel().getSelectedItem();
+        friendsListView.setItems(null);
+        friendsListView.setItems(friendsTemp);
+        friendsListView.getSelectionModel().select(selected);
     }
 }
