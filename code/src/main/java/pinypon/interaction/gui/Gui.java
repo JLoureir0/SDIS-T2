@@ -16,6 +16,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.abstractj.kalium.keys.PublicKey;
 import pinypon.handler.chat.ipeer.IPeerHandler;
 import pinypon.handler.chat.peer.PeerHandler;
@@ -254,6 +255,32 @@ public class Gui extends Application {
         this.chatBorderPane = new BorderPane();
         this.chatBorderPane.setRight(friendsListView);
         this.chatScene = new Scene(chatBorderPane);
+
+        this.chatScene.getStylesheets().add("/gui.css");
+        this.friendsListView.setCellFactory(new Callback<ListView<Friend>, ListCell<Friend>>() {
+            @Override
+            public ListCell<Friend> call(ListView<Friend> friendListView) {
+                ListCell<Friend> cell = new ListCell<Friend>() {
+                    @Override
+                    protected void updateItem(Friend item, boolean empty) {
+                        super.updateItem(item, empty);
+
+                        if(item != null)
+                            setText(item.getUsername());
+
+                        if(item.hasNotification()) {
+                            if(!getStyleClass().contains("notification")) {
+                                getStyleClass().add("notification");
+                            }
+                        }
+                        else {
+                            getStyleClass().remove("notification");
+                        }
+                    }
+                };
+                return cell;
+            }
+        });
     }
 
     private void chatSetup() throws IOException {
@@ -354,6 +381,7 @@ public class Gui extends Application {
             activeTextArea.appendText(this.user.getUsername() + ": " + message + "\n");
             this.messageField.clear();
             Friend friend = this.activeFriendTextArea.getFriend();
+            friend.setNotificationOff();
             this.iPeerHandler.sendMessage(this.user, friend, Message.MESSAGE, message);
         }
     }
@@ -558,6 +586,7 @@ public class Gui extends Application {
             return;
         }
         Friend friend = this.user.getFriend(encodedPublicKey);
+        friend.setNotificationOn();
         friendTextArea.appendText(friend.getUsername() + ": " + message + "\n");
     }
 

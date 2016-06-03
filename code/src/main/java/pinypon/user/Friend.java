@@ -3,10 +3,12 @@ package pinypon.user;
 public final class Friend extends Entity {
 
     private String alias;
+    private boolean notification;
 
     public Friend(String username, String encodedPublicKey) {
         super(username);
         this.encodedPublicKey = encodedPublicKey;
+        notification = false;
     }
 
     public String getAlias() {
@@ -24,5 +26,17 @@ public final class Friend extends Entity {
         } else {
             return this.alias;
         }
+    }
+
+    public void setNotificationOn() {
+        notification = true;
+    }
+
+    public void setNotificationOff() {
+        notification = false;
+    }
+
+    public boolean hasNotification() {
+        return notification;
     }
 }
