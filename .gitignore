@@ -10,3 +10,4 @@ code/**/.*
 *.iws
 *.ipr
 user.secret
+*.sqlite
