@@ -33,16 +33,16 @@ public class Message implements Serializable {
         this.myUsername = myUsername;
     }
 
-    public void setNonce(String nonce) {
-        this.encodedNonce = nonce;
+    public static int getMESSAGE() {
+        return MESSAGE;
     }
 
     public String getNonce() {
         return encodedNonce;
     }
 
-    public static int getMESSAGE() {
-        return MESSAGE;
+    public void setNonce(String nonce) {
+        this.encodedNonce = nonce;
     }
 
     public int getType() {
@@ -69,12 +69,12 @@ public class Message implements Serializable {
         return encodedSenderPublicKey;
     }
 
-    public String getEncodedReceiverPublicKey() {
-        return encodedReceiverPublicKey;
-    }
-
     public void setEncodedSenderPublicKey(String encodedSenderPublicKey) {
         this.encodedSenderPublicKey = encodedSenderPublicKey;
+    }
+
+    public String getEncodedReceiverPublicKey() {
+        return encodedReceiverPublicKey;
     }
 
     public void setEncodedReceiverPublicKey(String encodedReceiverPublicKey) {

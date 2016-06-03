@@ -2,7 +2,6 @@ package pinypon.protocol.chat.peer;
 
 import javafx.application.Platform;
 import org.abstractj.kalium.crypto.Box;
-import org.abstractj.kalium.crypto.Random;
 import org.abstractj.kalium.encoders.Encoder;
 import pinypon.connection.chat.ChatConnection;
 import pinypon.handler.chat.peer.PeerHandler;
@@ -15,8 +14,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import static org.abstractj.kalium.NaCl.Sodium.NONCE_BYTES;
 
 final public class PeerProtocol extends NotifyingThread {
 
@@ -42,7 +39,7 @@ final public class PeerProtocol extends NotifyingThread {
         this.gui = gui;
         this.encodedFriendPublicKey = message.getEncodedSenderPublicKey();
 
-        peerHandler.addConnection(encodedFriendPublicKey,this);
+        peerHandler.addConnection(encodedFriendPublicKey, this);
 
         System.out.println(encodedFriendPublicKey);
 
