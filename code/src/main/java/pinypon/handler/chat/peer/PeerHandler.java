@@ -12,7 +12,6 @@ import pinypon.user.Friend;
 import pinypon.user.User;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -108,9 +107,9 @@ final public class PeerHandler extends Thread implements ListeningThread {
             if (peerProtocol == null) {
                 return false;
             }
-                Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
-                byte[] nonce = new Random().randomBytes(NONCE_BYTES);
-                String encodedNonce = Encoder.HEX.encode(nonce);
+            Box cryptoBox = new Box(friend.getEncodedPublicKey(), user.getEncodedPrivateKey(), Encoder.HEX);
+            byte[] nonce = new Random().randomBytes(NONCE_BYTES);
+            String encodedNonce = Encoder.HEX.encode(nonce);
             if (message != null) {
                 String cipheredText = Encoder.HEX.encode(cryptoBox.encrypt(nonce, message.getBytes()));
                 peerProtocol.send(new Message(type, cipheredText, user.getEncodedPublicKey(), friend.getEncodedPublicKey(), encodedNonce));

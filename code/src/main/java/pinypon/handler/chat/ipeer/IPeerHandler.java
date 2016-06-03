@@ -116,7 +116,7 @@ final public class IPeerHandler implements ListeningThread {
         try {
             URL url = new URL("http://" + this.trackerIp + ":" + this.trackerPort + "/?id=" + friendEncodedPublicKey);
             URLConnection con = url.openConnection();
-            HttpURLConnection http = (HttpURLConnection)con;
+            HttpURLConnection http = (HttpURLConnection) con;
             http.setRequestMethod("GET");
             http.setRequestProperty("Content-Type", "application/json");
             http.connect();

@@ -323,7 +323,7 @@ public class Gui extends Application {
                         throw new IllegalArgumentException("Expecting at least: publicKey");
                     }
                     try {
-                        String helloText = "Hello There";;
+                        String helloText = "Hello There";
                         if (filteredMessage.length == 3) {
                             helloText = filteredMessage[2];
                         }
@@ -333,30 +333,17 @@ public class Gui extends Application {
                         throw new IllegalArgumentException("invalid publicKey");
                     }
                     break;
-                case "/id":
-                    if (filteredMessage.length == 1) {
-                        writeToActiveTextArea(this.user.getEncodedPublicKey());
-                    } else if (filteredMessage.length == 2) {
-                        switch (filteredMessage[1]) {
-                            case "mine":
-                                writeToActiveTextArea(this.user.getEncodedPublicKey());
-                                break;
-                            case "his":
-                                Friend friend = this.activeFriendTextArea.getFriend();
-                                if (friend != null) {
-                                    writeToActiveTextArea(friend.getEncodedPublicKey());
-                                } else {
-                                    simpleAlert(Alert.AlertType.ERROR, "User", "Bad state", "no user connected to this textArea");
-                                }
-                                break;
-                            default:
-                                simpleAlert(Alert.AlertType.ERROR, "User", "id bad input", "Bad option");
-                                throw new IllegalArgumentException("Bad option");
-                        }
+                case "/his":
+                    Friend friend = this.activeFriendTextArea.getFriend();
+                    if (friend != null) {
+                        writeToActiveTextArea(friend.getEncodedPublicKey());
                     } else {
-                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "(mine|his|)");
-                        throw new IllegalArgumentException("No more arguments expected");
+                        simpleAlert(Alert.AlertType.ERROR, "User", "Bad state", "no user connected to this textArea");
                     }
+                    break;
+                case "/id":
+                case "/me":
+                    writeToActiveTextArea(this.user.getEncodedPublicKey());
                     break;
                 default:
                     simpleAlert(Alert.AlertType.ERROR, "User", "Bad input", "Bad option");
@@ -436,7 +423,7 @@ public class Gui extends Application {
         alert.getButtonTypes().setAll(yesButton, noButton);
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == yesButton){
+        if (result.get() == yesButton) {
             return true;
         }
         return false;
@@ -608,7 +595,7 @@ public class Gui extends Application {
         try {
             URL url = new URL("http://" + this.trackerIp + ":" + this.trackerPort);
             URLConnection con = url.openConnection();
-            HttpURLConnection http = (HttpURLConnection)con;
+            HttpURLConnection http = (HttpURLConnection) con;
             http.setRequestMethod("POST");
             http.setDoOutput(true);
 
@@ -639,7 +626,7 @@ public class Gui extends Application {
                     continue;
 
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
-                while(addresses.hasMoreElements()) {
+                while (addresses.hasMoreElements()) {
                     InetAddress addr = addresses.nextElement();
                     ip = addr.getHostAddress();
                     System.out.println(iface.getDisplayName() + " " + ip);
